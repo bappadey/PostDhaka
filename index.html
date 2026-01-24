@@ -1,38 +1,440 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Post Dhaka</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Dhaka | Visual Experience</title>
+    <!-- Vimeo API -->
+    <script src="https://player.vimeo.com/api/player.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* --- 1. SETUP & BRAND COLORS --- */
+        :root {
+            --primary-blue: #0872B9;
+            --primary-pink: #EA1C5C;
+            --bg-dark: #121A2D;
+            --white: #FFFFFF;
+            --gray: #B0B0B0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--white); 
+            overflow-x: hidden; 
+        }
+
+        /* --- 2. INTRO SECTION --- */
+        #intro-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: var(--bg-dark); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: transform 0.8s ease-in-out, opacity 0.8s ease;
+        }
+        #intro-overlay video { width: 100%; height: 100%; object-fit: cover; }
+        .skip-btn {
+            position: absolute; bottom: 30px; padding: 10px 25px; 
+            background: rgba(255,255,255,0.1); border: 1px solid var(--primary-pink); 
+            color: var(--white); cursor: pointer; border-radius: 30px; backdrop-filter: blur(5px);
+            transition: 0.3s; z-index: 10000;
+        }
+        .skip-btn:hover { background: var(--primary-pink); }
+        #intro-overlay.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+
+        /* --- 3. NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 15px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(18, 26, 45, 0.95); backdrop-filter: blur(10px); 
+            z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .logo img { height: 40px; width: auto; cursor: pointer;}
+        .menu a {
+            color: var(--white); text-decoration: none; margin-left: 35px; 
+            font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            transition: color 0.3s; cursor: pointer;
+        }
+        .menu a:hover, .menu a.active { color: var(--primary-pink); }
+
+        /* --- PAGE SECTIONS (SPA Logic) --- */
+        section {
+            display: none; /* Hide all initially */
+            padding: 100px 20px 50px 20px;
+            min-height: 100vh;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        section.active-section { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 4. HOME: DYNAMIC VIDEO GRID --- */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 Columns Base */
+            grid-auto-rows: 200px; /* Base row height */
+            gap: 15px;
+            max-width: 1800px; margin: 0 auto;
+            grid-auto-flow: dense;
+        }
+
+        .video-item {
+            position: relative; background: #000; cursor: pointer;
+            overflow: hidden; border-radius: 4px;
+            border: 0px solid transparent; 
+            transition: transform 0.3s ease, border 0.3s ease;
+        }
+
+        /* HIGHLIGHT WHITE BORDER ON HOVER */
+        .video-item:hover { 
+            transform: scale(1.02); 
+            z-index: 10; 
+            border: 3px solid #fff; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        /* --- GRID CLASSES --- */
+        .small    { grid-column: span 1; grid-row: span 1; } 
+        .medium   { grid-column: span 2; grid-row: span 2; } 
+        .sq       { grid-column: span 1; grid-row: span 2; } 
+        .wide     { grid-column: span 3; grid-row: span 1; } 
+        .semiwide { grid-column: span 2; grid-row: span 1; } 
+        .tall     { grid-column: span 1; grid-row: span 3; } 
+        .semitall { grid-column: span 1; grid-row: span 2; } 
+        .large    { grid-column: span 3; grid-row: span 2; } 
+
+        /* --- VIDEO FILL LOGIC --- */
+        .iframe-wrapper {
+            width: 100%; height: 100%; pointer-events: none; position: relative;
+        }
+        .iframe-wrapper iframe {
+            position: absolute; top: 50%; left: 50%;
+            width: 300%; height: 300%; 
+            transform: translate(-50%, -50%);
+            opacity: 0.7; transition: opacity 0.3s;
+        }
+        .video-item:hover .iframe-wrapper iframe { opacity: 1; }
+        .hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
+
+        /* --- 5. SERVICES PAGE --- */
+        .service-container {
+            display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; max-width: 1400px; margin: 50px auto;
+        }
+        .service-card {
+            background: rgba(255,255,255,0.05); border-radius: 10px; width: 350px; overflow: hidden;
+            transition: 0.3s; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .service-card:hover { transform: translateY(-10px); border-color: var(--primary-pink); }
+        .service-media { height: 200px; background: #000; position: relative; overflow: hidden; }
+        .service-media iframe { width: 150%; height: 150%; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); pointer-events: none;}
+        .service-info { padding: 30px; text-align: center; }
+        .service-info h2 { color: var(--primary-blue); margin-bottom: 15px; font-size: 24px; }
+        .service-info p { color: var(--gray); line-height: 1.6; font-size: 14px; }
+
+        /* --- 6. ABOUT PAGE --- */
+        .about-container {
+            max-width: 900px; margin: 50px auto; text-align: center;
+        }
+        .about-container h1 { font-size: 48px; color: var(--primary-pink); margin-bottom: 30px; }
+        .about-container p { font-size: 18px; line-height: 1.8; color: #ddd; margin-bottom: 20px; text-align: justify; }
+        .highlight-text { color: var(--primary-blue); font-weight: bold; }
+
+        /* --- 7. CONTACT PAGE --- */
+        .contact-wrapper {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 50px; max-width: 1200px; margin: 50px auto;
+        }
+        .contact-info { flex: 1; min-width: 300px; }
+        .contact-item { 
+            display: flex; align-items: center; margin-bottom: 30px; 
+            padding: 20px; background: rgba(255,255,255,0.05); border-radius: 8px;
+            transition: 0.3s; border: 1px solid transparent;
+        }
+        .contact-item:hover { background: rgba(8, 114, 185, 0.2); border-color: var(--primary-blue); }
+        .contact-icon { font-size: 24px; color: var(--primary-pink); margin-right: 20px; width: 40px; text-align: center;}
+        
+        .contact-text h3 { color: var(--white); font-size: 18px; margin-bottom: 5px; }
+        .contact-text p, .contact-text a { color: var(--gray); font-size: 14px; text-decoration: none; transition: 0.3s; }
+        .contact-text a:hover { color: var(--primary-pink); }
+        
+        .map-container { flex: 1; min-width: 300px; height: 400px; border-radius: 10px; overflow: hidden; border: 2px solid #333; }
+        /* Dark Map Filter */
+        .map-container iframe { width: 100%; height: 100%; border: 0; filter: invert(90%) hue-rotate(180deg); }
+
+        /* --- MODAL --- */
+        #video-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: rgba(18, 26, 45, 0.98); z-index: 5000;
+            display: none; justify-content: center; align-items: center;
+        }
+        #video-modal.active { display: flex; }
+        .modal-content { width: 90%; max-width: 1200px; aspect-ratio: 16/9; position: relative; background: #000; box-shadow: 0 0 30px var(--primary-blue); }
+        .close-btn { position: absolute; top: -50px; right: 0; color: #fff; font-size: 40px; cursor: pointer; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .video-grid { grid-template-columns: repeat(2, 1fr); }
+            /* Mobile Reset */
+            .wide, .large { grid-column: span 2; grid-row: span 1; }
+            .tall { grid-row: span 2; }
+            .service-container { flex-direction: column; align-items: center; }
+            .contact-wrapper { flex-direction: column; }
+            nav { padding: 15px; }
+            .menu a { margin-left: 15px; font-size: 11px; }
+        }
+    </style>
 </head>
 <body>
-  <!-- Logo Intro -->
-  <div id="logo-intro">
-    <video src="images/Logo Intro.webm" autoplay muted playsinline></video>
-  </div>
 
-  <!-- Company Logo (Top Center after intro) -->
-  <div id="company-logo">
-    <img src="images/Post Dhaka Logo.png" alt="Company Logo">
-  </div>
-
-  <!-- Main Content -->
-  <div id="main-content" style="display: none;">
-    <div class="container">
-      <h1></h1>
-      <div id="thumbnail-grid"></div>
+    <!-- INTRO -->
+    <div id="intro-overlay">
+        <video id="introVideo" autoplay muted playsinline>
+            <source src="Assets/Logo Intro.webm" type="video/webm">
+            <source src="Assets/Logo Intro.mp4" type="video/mp4">
+        </video>
+        <button class="skip-btn" onclick="enterSite()">SKIP INTRO</button>
     </div>
-  </div>
 
-  <!-- Video Popup -->
-  <div id="video-popup">
-    <div class="popup-content">
-      <span class="close-btn">&times;</span>
-      <video id="popup-video" controls></video>
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo" onclick="showSection('home')">
+            <img src="Assets/Post Dhaka Logo.png" alt="Post Dhaka">
+        </div>
+        <div class="menu">
+            <a href="#" onclick="showSection('home')" class="active">HOME</a>
+            <a href="#" onclick="showSection('service')">SERVICE</a>
+            <a href="#" onclick="showSection('about')">ABOUT</a>
+            <a href="#" onclick="showSection('contact')">CONTACT</a>
+        </div>
+    </nav>
+
+    <!-- ================= SECTION: HOME ================= -->
+    <section id="home" class="active-section">
+        <div class="video-grid" id="gallery-container">
+            <!-- JS will inject boxes here -->
+        </div>
+    </section>
+
+    <!-- ================= SECTION: SERVICE ================= -->
+    <section id="service">
+        <div style="text-align:center; margin-bottom:40px;">
+            <h1 style="font-size:40px; color:white;">OUR SERVICES</h1>
+            <div style="height:3px; width:60px; background:var(--primary-pink); margin:10px auto;"></div>
+        </div>
+        
+        <div class="service-container">
+            <!-- Service 1 -->
+            <div class="service-card">
+                <div class="service-media">
+                    <iframe src="https://player.vimeo.com/video/76979871?background=1&mute=1&loop=1" frameborder="0"></iframe>
+                </div>
+                <div class="service-info">
+                    <h2>Creative Editing</h2>
+                    <p>We weave narratives that captivate. From rough cuts to the final polish, our offline editing ensures the story flows seamlessly.</p>
+                </div>
+            </div>
+            <!-- Service 2 -->
+            <div class="service-card">
+                <div class="service-media">
+                    <iframe src="https://player.vimeo.com/video/22439234?background=1&mute=1&loop=1" frameborder="0"></iframe>
+                </div>
+                <div class="service-info">
+                    <h2>Color Grading</h2>
+                    <p>Enhancing the visual mood. Our colorists use industry-standard tools to manipulate color and light.</p>
+                </div>
+            </div>
+            <!-- Service 3 -->
+            <div class="service-card">
+                <div class="service-media">
+                    <iframe src="https://player.vimeo.com/video/347119375?background=1&mute=1&loop=1" frameborder="0"></iframe>
+                </div>
+                <div class="service-info">
+                    <h2>Online & Finishing</h2>
+                    <p>The final touch. We handle mastering, VFX compositing, cleanups, and format delivery.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= SECTION: ABOUT ================= -->
+    <section id="about">
+        <div class="about-container">
+            <h1>WHO WE ARE</h1>
+            <p>
+                <span class="highlight-text">Post Dhaka</span> is a premier post-production boutique based in the heart of Dhaka, Bangladesh. We are a collective of passionate storytellers, editors, colorists, and visual artists dedicated to transforming raw footage into cinematic reality.
+            </p>
+            <p>
+                Founded with a vision to bridge the gap between technical excellence and artistic expression, we specialize in Commercials, Music Videos, Documentaries, and Fiction. Our workflow is designed to be collaborative, fast, and efficient.
+            </p>
+            <p>
+                At Post Dhaka, we don't just edit videos; we engineer emotions.
+            </p>
+        </div>
+    </section>
+
+    <!-- ================= SECTION: CONTACT ================= -->
+    <section id="contact">
+        <div style="text-align:center; margin-bottom:50px;">
+            <h1 style="font-size:40px; color:white;">GET IN TOUCH</h1>
+        </div>
+
+        <div class="contact-wrapper">
+            <div class="contact-info">
+                <!-- Phone -->
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+                    <div class="contact-text">
+                        <h3>Phone</h3>
+                        <p><a href="tel:+8801712111792">+880 1712 111 792</a></p>
+                    </div>
+                </div>
+                <!-- Email -->
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                    <div class="contact-text">
+                        <h3>Email</h3>
+                        <p><a href="mailto:srjitu@gmail.com">srjitu@gmail.com</a></p>
+                    </div>
+                </div>
+                <!-- Facebook -->
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fab fa-facebook-f"></i></div>
+                    <div class="contact-text">
+                        <h3>Facebook</h3>
+                        <p><a href="https://facebook.com/postdhaka" target="_blank">facebook.com/postdhaka</a></p>
+                    </div>
+                </div>
+                <!-- Address -->
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="contact-text">
+                        <h3>Studio Address</h3>
+                        <p>House 11, Road 12, Block F,<br>Niketon, Gulshan, Dhaka</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Map (Embed location for Post Dhaka/Niketon) -->
+            <div class="map-container">
+                <iframe 
+                    src="https://maps.google.com/maps?q=23.7732081,90.4074902&hl=en&z=17&output=embed" 
+                    width="600" 
+                    height="450" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL PLAYER -->
+    <div id="video-modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="modal-player" style="width:100%; height:100%;"></div>
+        </div>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <script>
+        // --- 1. INTRO LOGIC ---
+        const introOverlay = document.getElementById('intro-overlay');
+        const introVideo = document.getElementById('introVideo');
+
+        introVideo.onended = function() { enterSite(); };
+
+        function enterSite() {
+            introOverlay.classList.add('hidden');
+            setTimeout(() => introVideo.pause(), 1000);
+        }
+
+        // --- 2. NAVIGATION LOGIC ---
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.remove('active-section');
+            });
+            document.getElementById(sectionId).classList.add('active-section');
+            
+            document.querySelectorAll('.menu a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // --- 3. DYNAMIC VIDEO CONFIG ---
+        // Classes: small, medium, sq, wide, semiwide, tall, semitall, large
+        const portfolioData = [
+            { id: "76979871",  cls: "large" },     
+            { id: "347119375", cls: "sq" },        
+            { id: "461015328", cls: "small" },     
+            { id: "22439234",  cls: "semiwide" },  
+            { id: "156968789", cls: "tall" },      
+            { id: "583648170", cls: "wide" },      
+            { id: "76979871",  cls: "small" },     
+            { id: "347119375", cls: "semitall" },  
+            { id: "461015328", cls: "medium" },    
+            { id: "22439234",  cls: "small" }
+        ];
+
+        // --- 4. GRID GENERATOR ---
+        const galleryContainer = document.getElementById('gallery-container');
+        const modal = document.getElementById('video-modal');
+        let fullScreenPlayer = null;
+
+        function generateGallery() {
+            let htmlCode = '';
+            portfolioData.forEach(item => {
+                htmlCode += `
+                <div class="video-item ${item.cls}" data-id="${item.id}">
+                    <div class="hover-overlay"></div>
+                    <div class="iframe-wrapper">
+                        <iframe src="https://player.vimeo.com/video/${item.id}?background=1&mute=1&loop=1&autopause=0&quality=360p" 
+                                frameborder="0" allow="autoplay; fullscreen"></iframe>
+                    </div>
+                </div>`;
+            });
+            galleryContainer.innerHTML = htmlCode;
+            initializeHoverLogic();
+        }
+
+        // --- 5. INTERACTION LOGIC ---
+        function initializeHoverLogic() {
+            const items = document.querySelectorAll('.video-item');
+            items.forEach(item => {
+                const iframe = item.querySelector('iframe');
+                const player = new Vimeo.Player(iframe);
+                const videoID = item.getAttribute('data-id');
+
+                player.pause();
+
+                item.addEventListener('mouseenter', () => {
+                    player.play().catch(() => {});
+                });
+                item.addEventListener('mouseleave', () => {
+                    player.pause();
+                    player.setCurrentTime(0);
+                });
+                item.addEventListener('click', () => {
+                    openModal(videoID);
+                });
+            });
+        }
+
+        function openModal(id) {
+            modal.classList.add('active');
+            if (fullScreenPlayer) fullScreenPlayer.destroy();
+            fullScreenPlayer = new Vimeo.Player('modal-player', {
+                id: id, width: 1920, autoplay: true, muted: false, loop: false
+            });
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            if (fullScreenPlayer) fullScreenPlayer.unload();
+        }
+
+        window.onload = generateGallery;
+
+    </script>
 </body>
 </html>
