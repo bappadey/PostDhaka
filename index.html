@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post Dhaka | Visual Experience</title>
     
+    <!-- Favicon (Logo as Icon) -->
+    <link rel="icon" href="Assets/Post Dhaka Logo.png" type="image/png">
+
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -272,13 +275,15 @@
         <div class="about-container">
             <h1>WHO WE ARE</h1>
             <p>
-                <span class="highlight-text">Post Dhaka</span> is a premier post-production boutique based in the heart of Dhaka, Bangladesh. We are a collective of passionate storytellers, editors, colorists, and visual artists dedicated to transforming raw footage into cinematic reality.
+                <span class="highlight-text">Post Dhaka</span> is a creative post-production and visual storytelling studio based in Dhaka, Bangladesh. We specialize in professional video editing, color correction, color grading, motion graphics, and visual post-production services for films, web content, commercials, TVCs, OVCs, and digital media.
             </p>
             <p>
-                Founded with a vision to bridge the gap between technical excellence and artistic expression, we specialize in Commercials, Music Videos, Documentaries, and Fiction. Our workflow is designed to be collaborative, fast, and efficient.
+                At Post Dhaka, we believe that every story deserves powerful presentation. Our team combines technical precision with creative vision to transform raw footage into cinematic, engaging, and emotionally impactful content. From short-form digital content to full-scale film projects, we maintain the highest standards of quality, consistency, and visual excellence.
+                <br><br>
+                We work with filmmakers, brands, agencies, and content creators to deliver polished, modern, and audience-focused visuals that stand out in today’s competitive media landscape. Our workflow is built on efficiency, attention to detail, and a deep understanding of storytelling and color science.
             </p>
             <p>
-                At Post Dhaka, we don't just edit videos; we engineer emotions.
+               Whether it’s editing, color grading, or complete post-production finishing — Post Dhaka is your trusted creative partner for professional visual post-production.
             </p>
         </div>
     </section>
@@ -367,7 +372,17 @@
         }
 
         // --- 3. YOUTUBE VIDEO DATA (HOME) ---
+        // REPLACE THESE IDS with your real portfolio videos
         const portfolioData = [
+            { id: "LXb3EKWsInQ",  cls: "large" },     
+            { id: "ScMzIvxBSi4",  cls: "sq" },        
+            { id: "u31qwQUeGuM",  cls: "small" },     
+            { id: "Bey4XXJAqS8",  cls: "semiwide" },  
+            { id: "LXb3EKWsInQ",  cls: "tall" },      
+            { id: "ScMzIvxBSi4",  cls: "wide" },      
+            { id: "u31qwQUeGuM",  cls: "small" },     
+            { id: "Bey4XXJAqS8",  cls: "semitall" },  
+            { id: "LXb3EKWsInQ",  cls: "medium" },
             { id: "LXb3EKWsInQ",  cls: "large" },     
             { id: "ScMzIvxBSi4",  cls: "sq" },        
             { id: "u31qwQUeGuM",  cls: "small" },     
@@ -386,12 +401,14 @@
         function generateGallery() {
             let htmlCode = '';
             portfolioData.forEach((item, index) => {
+                // Fixed Broken Syntax Here
                 const embedUrl = `https://www.youtube.com/embed/${item.id}?enablejsapi=1&autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${item.id}&modestbranding=1`;
                 
                 htmlCode += `
                 <div class="video-item ${item.cls}" onclick="openModal('${item.id}')">
                     <div class="hover-overlay"></div>
                     <div class="iframe-wrapper">
+                        <!-- Fixed Broken Image Source -->
                         <img class="thumb-img" src="https://img.youtube.com/vi/${item.id}/maxresdefault.jpg" alt="Video Thumb">
                         <iframe id="grid-vid-${index}" 
                             src="${embedUrl}" 
