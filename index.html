@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post Dhaka | Visual Experience</title>
     
-    <!-- Favicon (Logo as Icon) -->
+    <!-- FAVICON: Logo as Icon -->
     <link rel="icon" href="Assets/Post Dhaka icon.png" type="image/png">
 
     <!-- FontAwesome for Icons -->
@@ -133,10 +133,10 @@
         .service-media { 
             height: 200px; background: #000; position: relative; overflow: hidden; 
         }
-        /* Style for Local Service Videos */
+        /* Style for Local Service Videos/Images */
         .service-media video { 
             width: 100%; height: 100%; 
-            object-fit: cover; /* Ensures video fills the box perfectly */
+            object-fit: cover; 
             position: absolute; top:0; left:0;
         }
         
@@ -229,9 +229,10 @@
             <!-- Service 1: Editing -->
             <div class="service-card">
                 <div class="service-media">
-                    <!-- Local Video: Assets/Service/editing.mp4 -->
-                    <video autoplay muted loop playsinline>
-                        <source src="Assets/Service/editing.mp4" type="video/mp4">
+                    <!-- Local Asset: Assets/Service/Edit.jpeg -->
+                    <video autoplay muted loop playsinline poster="Assets/Service/Edit.jpeg">
+                         <!-- Fallback to video if needed, currently using image as poster/source logic -->
+                        <source src="Assets/Service/Edit.jpeg" type="image/jpeg">
                     </video>
                 </div>
                 <div class="service-info">
@@ -243,9 +244,9 @@
             <!-- Service 2: Color Grading -->
             <div class="service-card">
                 <div class="service-media">
-                     <!-- Local Video: Assets/Service/grading.mp4 -->
-                    <video autoplay muted loop playsinline>
-                        <source src="Assets/Service/grading.mp4" type="video/mp4">
+                     <!-- Local Asset: Assets/Service/Color.webp -->
+                    <video autoplay muted loop playsinline poster="Assets/Service/Color.webp">
+                        <source src="Assets/Service/Color.webp" type="image/webp">
                     </video>
                 </div>
                 <div class="service-info">
@@ -257,9 +258,9 @@
             <!-- Service 3: Online -->
             <div class="service-card">
                 <div class="service-media">
-                     <!-- Local Video: Assets/Service/online.mp4 -->
-                    <video autoplay muted loop playsinline>
-                        <source src="Assets/Service/online.mp4" type="video/mp4">
+                     <!-- Local Asset: Assets/Service/Online.jpeg -->
+                    <video autoplay muted loop playsinline poster="Assets/Service/Online.jpeg">
+                        <source src="Assets/Service/Online.jpeg" type="image/jpeg">
                     </video>
                 </div>
                 <div class="service-info">
@@ -343,7 +344,7 @@
         </div>
     </div>
 
-    <!-- YOUTUBE API SCRIPT -->
+    <!-- YOUTUBE API SCRIPT (Corrected) -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
@@ -372,7 +373,7 @@
         }
 
         // --- 3. YOUTUBE VIDEO DATA (HOME) ---
-        // REPLACE THESE IDS with your real portfolio videos
+        // Placeholder IDs used. Replace with your actual IDs.
         const portfolioData = [
             { id: "LXb3EKWsInQ",  cls: "large" },     
             { id: "ScMzIvxBSi4",  cls: "sq" },        
@@ -382,33 +383,29 @@
             { id: "ScMzIvxBSi4",  cls: "wide" },      
             { id: "u31qwQUeGuM",  cls: "small" },     
             { id: "Bey4XXJAqS8",  cls: "semitall" },  
-            { id: "LXb3EKWsInQ",  cls: "medium" },
+            { id: "LXb3EKWsInQ",  cls: "medium" },    
+            { id: "ScMzIvxBSi4",  cls: "small" },
             { id: "LXb3EKWsInQ",  cls: "large" },     
             { id: "ScMzIvxBSi4",  cls: "sq" },        
             { id: "u31qwQUeGuM",  cls: "small" },     
             { id: "Bey4XXJAqS8",  cls: "semiwide" },  
-            { id: "LXb3EKWsInQ",  cls: "tall" },      
-            { id: "ScMzIvxBSi4",  cls: "wide" },      
-            { id: "u31qwQUeGuM",  cls: "small" },     
-            { id: "Bey4XXJAqS8",  cls: "semitall" },  
-            { id: "LXb3EKWsInQ",  cls: "medium" },    
-            { id: "ScMzIvxBSi4",  cls: "small" }
+            { id: "LXb3EKWsInQ",  cls: "tall" }
         ];
 
-        // --- 4. GRID GENERATOR ---
+        // --- 4. GRID GENERATOR (Corrected Syntax) ---
         const galleryContainer = document.getElementById('gallery-container');
         
         function generateGallery() {
             let htmlCode = '';
             portfolioData.forEach((item, index) => {
-                // Fixed Broken Syntax Here
+                // Fixed String Interpolation here
                 const embedUrl = `https://www.youtube.com/embed/${item.id}?enablejsapi=1&autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${item.id}&modestbranding=1`;
                 
                 htmlCode += `
                 <div class="video-item ${item.cls}" onclick="openModal('${item.id}')">
                     <div class="hover-overlay"></div>
                     <div class="iframe-wrapper">
-                        <!-- Fixed Broken Image Source -->
+                        <!-- Fixed Image Source Syntax -->
                         <img class="thumb-img" src="https://img.youtube.com/vi/${item.id}/maxresdefault.jpg" alt="Video Thumb">
                         <iframe id="grid-vid-${index}" 
                             src="${embedUrl}" 
@@ -426,7 +423,7 @@
         const modal = document.getElementById('video-modal');
         let player;
 
-        function onYouTubeIframeAPIReady() { /* Ready */ }
+        function onYouTubeIframeAPIReady() { /* API Ready */ }
 
         function openModal(videoId) {
             modal.classList.add('active');
