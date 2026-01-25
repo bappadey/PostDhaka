@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post Dhaka | Visual Experience</title>
-    <!-- Vimeo API -->
-    <script src="https://player.vimeo.com/api/player.js"></script>
+    
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -61,20 +60,17 @@
 
         /* --- PAGE SECTIONS (SPA Logic) --- */
         section {
-            display: none; /* Hide all initially */
-            padding: 100px 20px 50px 20px;
-            min-height: 100vh;
-            animation: fadeIn 0.5s ease-in-out;
+            display: none; padding: 100px 20px 50px 20px;
+            min-height: 100vh; animation: fadeIn 0.5s ease-in-out;
         }
         section.active-section { display: block; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- 4. HOME: DYNAMIC VIDEO GRID --- */
         .video-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 Columns Base */
-            grid-auto-rows: 200px; /* Base row height */
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 200px;
             gap: 15px;
             max-width: 1800px; margin: 0 auto;
             grid-auto-flow: dense;
@@ -87,15 +83,13 @@
             transition: transform 0.3s ease, border 0.3s ease;
         }
 
-        /* HIGHLIGHT WHITE BORDER ON HOVER */
         .video-item:hover { 
-            transform: scale(1.02); 
-            z-index: 10; 
+            transform: scale(1.02); z-index: 10; 
             border: 3px solid #fff; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         }
 
-        /* --- GRID CLASSES --- */
+        /* GRID CLASSES */
         .small    { grid-column: span 1; grid-row: span 1; } 
         .medium   { grid-column: span 2; grid-row: span 2; } 
         .sq       { grid-column: span 1; grid-row: span 2; } 
@@ -105,20 +99,25 @@
         .semitall { grid-column: span 1; grid-row: span 2; } 
         .large    { grid-column: span 3; grid-row: span 2; } 
 
-        /* --- VIDEO FILL LOGIC --- */
+        /* --- YOUTUBE FILL LOGIC (Home Grid) --- */
         .iframe-wrapper {
-            width: 100%; height: 100%; pointer-events: none; position: relative;
+            width: 100%; height: 100%; pointer-events: none; position: relative; overflow: hidden;
+        }
+        .thumb-img {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0; transition: opacity 0.3s;
         }
         .iframe-wrapper iframe {
             position: absolute; top: 50%; left: 50%;
             width: 300%; height: 300%; 
             transform: translate(-50%, -50%);
-            opacity: 0.7; transition: opacity 0.3s;
+            opacity: 0; transition: opacity 0.5s;
         }
         .video-item:hover .iframe-wrapper iframe { opacity: 1; }
+        .video-item:hover .thumb-img { opacity: 0; }
         .hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
 
-        /* --- 5. SERVICES PAGE --- */
+        /* --- 5. SERVICES PAGE (Local Assets) --- */
         .service-container {
             display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; max-width: 1400px; margin: 50px auto;
         }
@@ -127,24 +126,28 @@
             transition: 0.3s; border: 1px solid rgba(255,255,255,0.1);
         }
         .service-card:hover { transform: translateY(-10px); border-color: var(--primary-pink); }
-        .service-media { height: 200px; background: #000; position: relative; overflow: hidden; }
-        .service-media iframe { width: 150%; height: 150%; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); pointer-events: none;}
+        
+        .service-media { 
+            height: 200px; background: #000; position: relative; overflow: hidden; 
+        }
+        /* Style for Local Service Videos */
+        .service-media video { 
+            width: 100%; height: 100%; 
+            object-fit: cover; /* Ensures video fills the box perfectly */
+            position: absolute; top:0; left:0;
+        }
+        
         .service-info { padding: 30px; text-align: center; }
         .service-info h2 { color: var(--primary-blue); margin-bottom: 15px; font-size: 24px; }
         .service-info p { color: var(--gray); line-height: 1.6; font-size: 14px; }
 
-        /* --- 6. ABOUT PAGE --- */
-        .about-container {
-            max-width: 900px; margin: 50px auto; text-align: center;
-        }
+        /* --- 6. ABOUT & CONTACT PAGE --- */
+        .about-container { max-width: 900px; margin: 50px auto; text-align: center; }
         .about-container h1 { font-size: 48px; color: var(--primary-pink); margin-bottom: 30px; }
         .about-container p { font-size: 18px; line-height: 1.8; color: #ddd; margin-bottom: 20px; text-align: justify; }
         .highlight-text { color: var(--primary-blue); font-weight: bold; }
 
-        /* --- 7. CONTACT PAGE --- */
-        .contact-wrapper {
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 50px; max-width: 1200px; margin: 50px auto;
-        }
+        .contact-wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 50px; max-width: 1200px; margin: 50px auto; }
         .contact-info { flex: 1; min-width: 300px; }
         .contact-item { 
             display: flex; align-items: center; margin-bottom: 30px; 
@@ -153,13 +156,11 @@
         }
         .contact-item:hover { background: rgba(8, 114, 185, 0.2); border-color: var(--primary-blue); }
         .contact-icon { font-size: 24px; color: var(--primary-pink); margin-right: 20px; width: 40px; text-align: center;}
-        
         .contact-text h3 { color: var(--white); font-size: 18px; margin-bottom: 5px; }
         .contact-text p, .contact-text a { color: var(--gray); font-size: 14px; text-decoration: none; transition: 0.3s; }
         .contact-text a:hover { color: var(--primary-pink); }
         
         .map-container { flex: 1; min-width: 300px; height: 400px; border-radius: 10px; overflow: hidden; border: 2px solid #333; }
-        /* Dark Map Filter */
         .map-container iframe { width: 100%; height: 100%; border: 0; filter: invert(90%) hue-rotate(180deg); }
 
         /* --- MODAL --- */
@@ -175,11 +176,9 @@
         /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
             .video-grid { grid-template-columns: repeat(2, 1fr); }
-            /* Mobile Reset */
             .wide, .large { grid-column: span 2; grid-row: span 1; }
             .tall { grid-row: span 2; }
-            .service-container { flex-direction: column; align-items: center; }
-            .contact-wrapper { flex-direction: column; }
+            .service-container, .contact-wrapper { flex-direction: column; }
             nav { padding: 15px; }
             .menu a { margin-left: 15px; font-size: 11px; }
         }
@@ -212,7 +211,7 @@
     <!-- ================= SECTION: HOME ================= -->
     <section id="home" class="active-section">
         <div class="video-grid" id="gallery-container">
-            <!-- JS will inject boxes here -->
+            <!-- JS will inject YouTube boxes here -->
         </div>
     </section>
 
@@ -224,30 +223,41 @@
         </div>
         
         <div class="service-container">
-            <!-- Service 1 -->
+            <!-- Service 1: Editing -->
             <div class="service-card">
                 <div class="service-media">
-                    <iframe src="https://player.vimeo.com/video/76979871?background=1&mute=1&loop=1" frameborder="0"></iframe>
+                    <!-- Local Video: Assets/Service/editing.mp4 -->
+                    <video autoplay muted loop playsinline>
+                        <source src="Assets/Service/editing.mp4" type="video/mp4">
+                    </video>
                 </div>
                 <div class="service-info">
                     <h2>Creative Editing</h2>
                     <p>We weave narratives that captivate. From rough cuts to the final polish, our offline editing ensures the story flows seamlessly.</p>
                 </div>
             </div>
-            <!-- Service 2 -->
+
+            <!-- Service 2: Color Grading -->
             <div class="service-card">
                 <div class="service-media">
-                    <iframe src="https://player.vimeo.com/video/22439234?background=1&mute=1&loop=1" frameborder="0"></iframe>
+                     <!-- Local Video: Assets/Service/grading.mp4 -->
+                    <video autoplay muted loop playsinline>
+                        <source src="Assets/Service/grading.mp4" type="video/mp4">
+                    </video>
                 </div>
                 <div class="service-info">
                     <h2>Color Grading</h2>
                     <p>Enhancing the visual mood. Our colorists use industry-standard tools to manipulate color and light.</p>
                 </div>
             </div>
-            <!-- Service 3 -->
+
+            <!-- Service 3: Online -->
             <div class="service-card">
                 <div class="service-media">
-                    <iframe src="https://player.vimeo.com/video/347119375?background=1&mute=1&loop=1" frameborder="0"></iframe>
+                     <!-- Local Video: Assets/Service/online.mp4 -->
+                    <video autoplay muted loop playsinline>
+                        <source src="Assets/Service/online.mp4" type="video/mp4">
+                    </video>
                 </div>
                 <div class="service-info">
                     <h2>Online & Finishing</h2>
@@ -281,7 +291,6 @@
 
         <div class="contact-wrapper">
             <div class="contact-info">
-                <!-- Phone -->
                 <div class="contact-item">
                     <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
                     <div class="contact-text">
@@ -289,7 +298,6 @@
                         <p><a href="tel:+8801712111792">+880 1712 111 792</a></p>
                     </div>
                 </div>
-                <!-- Email -->
                 <div class="contact-item">
                     <div class="contact-icon"><i class="fas fa-envelope"></i></div>
                     <div class="contact-text">
@@ -297,7 +305,6 @@
                         <p><a href="mailto:srjitu@gmail.com">srjitu@gmail.com</a></p>
                     </div>
                 </div>
-                <!-- Facebook -->
                 <div class="contact-item">
                     <div class="contact-icon"><i class="fab fa-facebook-f"></i></div>
                     <div class="contact-text">
@@ -305,7 +312,6 @@
                         <p><a href="https://facebook.com/postdhaka" target="_blank">facebook.com/postdhaka</a></p>
                     </div>
                 </div>
-                <!-- Address -->
                 <div class="contact-item">
                     <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
                     <div class="contact-text">
@@ -315,14 +321,10 @@
                 </div>
             </div>
 
-            <!-- Google Map (Embed location for Post Dhaka/Niketon) -->
             <div class="map-container">
                 <iframe 
                     src="https://maps.google.com/maps?q=23.7732081,90.4074902&hl=en&z=17&output=embed" 
-                    width="600" 
-                    height="450" 
-                    allowfullscreen="" 
-                    loading="lazy">
+                    width="600" height="450" allowfullscreen="" loading="lazy">
                 </iframe>
             </div>
         </div>
@@ -332,9 +334,12 @@
     <div id="video-modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div id="modal-player" style="width:100%; height:100%;"></div>
+            <div id="youtube-player-container" style="width:100%; height:100%;"></div>
         </div>
     </div>
+
+    <!-- YOUTUBE API SCRIPT -->
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
         // --- 1. INTRO LOGIC ---
@@ -361,76 +366,73 @@
             event.target.classList.add('active');
         }
 
-        // --- 3. DYNAMIC VIDEO CONFIG ---
-        // Classes: small, medium, sq, wide, semiwide, tall, semitall, large
+        // --- 3. YOUTUBE VIDEO DATA (HOME) ---
         const portfolioData = [
-            { id: "76979871",  cls: "large" },     
-            { id: "347119375", cls: "sq" },        
-            { id: "461015328", cls: "small" },     
-            { id: "22439234",  cls: "semiwide" },  
-            { id: "156968789", cls: "tall" },      
-            { id: "583648170", cls: "wide" },      
-            { id: "76979871",  cls: "small" },     
-            { id: "347119375", cls: "semitall" },  
-            { id: "461015328", cls: "medium" },    
-            { id: "22439234",  cls: "small" }
+            { id: "LXb3EKWsInQ",  cls: "large" },     
+            { id: "ScMzIvxBSi4",  cls: "sq" },        
+            { id: "u31qwQUeGuM",  cls: "small" },     
+            { id: "Bey4XXJAqS8",  cls: "semiwide" },  
+            { id: "LXb3EKWsInQ",  cls: "tall" },      
+            { id: "ScMzIvxBSi4",  cls: "wide" },      
+            { id: "u31qwQUeGuM",  cls: "small" },     
+            { id: "Bey4XXJAqS8",  cls: "semitall" },  
+            { id: "LXb3EKWsInQ",  cls: "medium" },    
+            { id: "ScMzIvxBSi4",  cls: "small" }
         ];
 
         // --- 4. GRID GENERATOR ---
         const galleryContainer = document.getElementById('gallery-container');
-        const modal = document.getElementById('video-modal');
-        let fullScreenPlayer = null;
-
+        
         function generateGallery() {
             let htmlCode = '';
-            portfolioData.forEach(item => {
+            portfolioData.forEach((item, index) => {
+                const embedUrl = `https://www.youtube.com/embed/${item.id}?enablejsapi=1&autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${item.id}&modestbranding=1`;
+                
                 htmlCode += `
-                <div class="video-item ${item.cls}" data-id="${item.id}">
+                <div class="video-item ${item.cls}" onclick="openModal('${item.id}')">
                     <div class="hover-overlay"></div>
                     <div class="iframe-wrapper">
-                        <iframe src="https://player.vimeo.com/video/${item.id}?background=1&mute=1&loop=1&autopause=0&quality=360p" 
-                                frameborder="0" allow="autoplay; fullscreen"></iframe>
+                        <img class="thumb-img" src="https://img.youtube.com/vi/${item.id}/maxresdefault.jpg" alt="Video Thumb">
+                        <iframe id="grid-vid-${index}" 
+                            src="${embedUrl}" 
+                            frameborder="0" 
+                            allow="autoplay; encrypted-media" 
+                            allowfullscreen>
+                        </iframe>
                     </div>
                 </div>`;
             });
             galleryContainer.innerHTML = htmlCode;
-            initializeHoverLogic();
         }
 
-        // --- 5. INTERACTION LOGIC ---
-        function initializeHoverLogic() {
-            const items = document.querySelectorAll('.video-item');
-            items.forEach(item => {
-                const iframe = item.querySelector('iframe');
-                const player = new Vimeo.Player(iframe);
-                const videoID = item.getAttribute('data-id');
+        // --- 5. MODAL PLAYER (YouTube) ---
+        const modal = document.getElementById('video-modal');
+        let player;
 
-                player.pause();
+        function onYouTubeIframeAPIReady() { /* Ready */ }
 
-                item.addEventListener('mouseenter', () => {
-                    player.play().catch(() => {});
-                });
-                item.addEventListener('mouseleave', () => {
-                    player.pause();
-                    player.setCurrentTime(0);
-                });
-                item.addEventListener('click', () => {
-                    openModal(videoID);
-                });
-            });
-        }
-
-        function openModal(id) {
+        function openModal(videoId) {
             modal.classList.add('active');
-            if (fullScreenPlayer) fullScreenPlayer.destroy();
-            fullScreenPlayer = new Vimeo.Player('modal-player', {
-                id: id, width: 1920, autoplay: true, muted: false, loop: false
+            if (player) { player.destroy(); }
+
+            player = new YT.Player('youtube-player-container', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: { 'autoplay': 1, 'rel': 0, 'showinfo': 0, 'modestbranding': 1 },
+                events: { 'onReady': onPlayerReady }
             });
         }
+
+        function onPlayerReady(event) { event.target.playVideo(); }
 
         function closeModal() {
             modal.classList.remove('active');
-            if (fullScreenPlayer) fullScreenPlayer.unload();
+            if (player) {
+                player.stopVideo();
+                player.destroy();
+                player = null;
+            }
         }
 
         window.onload = generateGallery;
