@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post Dhaka | Visual Experience</title>
     
-    <!-- FAVICON: Logo as Icon -->
+    <!-- FAVICON -->
     <link rel="icon" href="Assets/Post Dhaka icon.png" type="image/png">
 
     <!-- FontAwesome for Icons -->
@@ -102,7 +102,7 @@
         .semitall { grid-column: span 1; grid-row: span 2; } 
         .large    { grid-column: span 3; grid-row: span 2; } 
 
-        /* --- YOUTUBE FILL LOGIC (Home Grid) --- */
+        /* --- YOUTUBE FILL LOGIC --- */
         .iframe-wrapper {
             width: 100%; height: 100%; pointer-events: none; position: relative; overflow: hidden;
         }
@@ -120,7 +120,7 @@
         .video-item:hover .thumb-img { opacity: 0; }
         .hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
 
-        /* --- 5. SERVICES PAGE (Local Assets) --- */
+        /* --- 5. SERVICES PAGE --- */
         .service-container {
             display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; max-width: 1400px; margin: 50px auto;
         }
@@ -133,18 +133,15 @@
         .service-media { 
             height: 200px; background: #000; position: relative; overflow: hidden; 
         }
-        /* Style for Local Service Videos/Images */
         .service-media video { 
-            width: 100%; height: 100%; 
-            object-fit: cover; 
-            position: absolute; top:0; left:0;
+            width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0;
         }
         
         .service-info { padding: 30px; text-align: center; }
         .service-info h2 { color: var(--primary-blue); margin-bottom: 15px; font-size: 24px; }
         .service-info p { color: var(--gray); line-height: 1.6; font-size: 14px; }
 
-        /* --- 6. ABOUT & CONTACT PAGE --- */
+        /* --- 6. ABOUT & CONTACT --- */
         .about-container { max-width: 900px; margin: 50px auto; text-align: center; }
         .about-container h1 { font-size: 48px; color: var(--primary-pink); margin-bottom: 30px; }
         .about-container p { font-size: 18px; line-height: 1.8; color: #ddd; margin-bottom: 20px; text-align: justify; }
@@ -214,7 +211,7 @@
     <!-- ================= SECTION: HOME ================= -->
     <section id="home" class="active-section">
         <div class="video-grid" id="gallery-container">
-            <!-- JS will inject YouTube boxes here -->
+            <p style="text-align:center; width:100%; color:gray;">Loading videos...</p>
         </div>
     </section>
 
@@ -226,12 +223,9 @@
         </div>
         
         <div class="service-container">
-            <!-- Service 1: Editing -->
             <div class="service-card">
                 <div class="service-media">
-                    <!-- Local Asset: Assets/Service/Edit.jpeg -->
                     <video autoplay muted loop playsinline poster="Assets/Service/Edit.jpeg">
-                         <!-- Fallback to video if needed, currently using image as poster/source logic -->
                         <source src="Assets/Service/Edit.jpeg" type="image/jpeg">
                     </video>
                 </div>
@@ -241,10 +235,8 @@
                 </div>
             </div>
 
-            <!-- Service 2: Color Grading -->
             <div class="service-card">
                 <div class="service-media">
-                     <!-- Local Asset: Assets/Service/Color.webp -->
                     <video autoplay muted loop playsinline poster="Assets/Service/Color.webp">
                         <source src="Assets/Service/Color.webp" type="image/webp">
                     </video>
@@ -255,10 +247,8 @@
                 </div>
             </div>
 
-            <!-- Service 3: Online -->
             <div class="service-card">
                 <div class="service-media">
-                     <!-- Local Asset: Assets/Service/Online.jpeg -->
                     <video autoplay muted loop playsinline poster="Assets/Service/Online.jpeg">
                         <source src="Assets/Service/Online.jpeg" type="image/jpeg">
                     </video>
@@ -344,88 +334,112 @@
         </div>
     </div>
 
-    <!-- YOUTUBE API SCRIPT (Corrected) -->
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- FIREBASE SDK & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <script>
-        // --- 1. INTRO LOGIC ---
-        const introOverlay = document.getElementById('intro-overlay');
-        const introVideo = document.getElementById('introVideo');
+        // ======================================================
+        // YOUR FIREBASE CONFIG
+        // ======================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzQ81jG6k6ieD5HShAgubU3fX0eV6x7j8",
+            authDomain: "postdhaka-links.firebaseapp.com",
+            projectId: "postdhaka-links",
+            storageBucket: "postdhaka-links.firebasestorage.app",
+            messagingSenderId: "21578530372",
+            appId: "1:21578530372:web:ce243a7141d402fb924611",
+            measurementId: "G-EZVZ5DSX46"
+        };
+        // ======================================================
 
-        introVideo.onended = function() { enterSite(); };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        function enterSite() {
-            introOverlay.classList.add('hidden');
-            setTimeout(() => introVideo.pause(), 1000);
-        }
-
-        // --- 2. NAVIGATION LOGIC ---
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(sec => {
-                sec.classList.remove('active-section');
-            });
-            document.getElementById(sectionId).classList.add('active-section');
+        // Function to load videos from Database
+        window.loadGalleryFromDB = async () => {
+            const galleryContainer = document.getElementById('gallery-container');
             
-            document.querySelectorAll('.menu a').forEach(link => {
-                link.classList.remove('active');
-            });
-            event.target.classList.add('active');
-        }
-
-        // --- 3. YOUTUBE VIDEO DATA (HOME) ---
-        // Placeholder IDs used. Replace with your actual IDs.
-        const portfolioData = [
-            { id: "O-zG_inciIo",  cls: "large" },     
-            { id: "5gf0Icoizs8",  cls: "sq" },        
-            { id: "xQgzYhmYZZY",  cls: "small" },     
-            { id: "DwOTOm-tteo",  cls: "semiwide" },  
-            { id: "_j-GSQ7Bty0",  cls: "tall" },      
-            { id: "GLFcAHB1LAg",  cls: "wide" },      
-            { id: "w7kH_FBpnZI",  cls: "small" },     
-            { id: "VTzuggox5mM",  cls: "semitall" },  
-            { id: "4ty8wMHtIYU",  cls: "medium" },    
-            { id: "c0Ui72zraRU",  cls: "small" },
-            { id: "17VTSpNqU0c",  cls: "large" },     
-            { id: "-mOamsYFnJc",  cls: "sq" },        
-            { id: "32SfFSx70Zs",  cls: "small" },     
-            { id: "F9Zks8RQZHg",  cls: "semiwide" },  
-            { id: "72n-Db9zYF8",  cls: "tall" }
-        ];
-
-        // --- 4. GRID GENERATOR (Corrected Syntax) ---
-        const galleryContainer = document.getElementById('gallery-container');
-        
-        function generateGallery() {
-            let htmlCode = '';
-            portfolioData.forEach((item, index) => {
-                // Fixed String Interpolation here
-                const embedUrl = `https://www.youtube.com/embed/${item.id}?enablejsapi=1&autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${item.id}&modestbranding=1`;
+            try {
+                const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
                 
-                htmlCode += `
-                <div class="video-item ${item.cls}" onclick="openModal('${item.id}')">
-                    <div class="hover-overlay"></div>
-                    <div class="iframe-wrapper">
-                        <!-- Fixed Image Source Syntax -->
-                        <img class="thumb-img" src="https://img.youtube.com/vi/${item.id}/maxresdefault.jpg" alt="Video Thumb">
-                        <iframe id="grid-vid-${index}" 
-                            src="${embedUrl}" 
-                            frameborder="0" 
-                            allow="autoplay; encrypted-media" 
-                            allowfullscreen>
-                        </iframe>
-                    </div>
-                </div>`;
-            });
-            galleryContainer.innerHTML = htmlCode;
+                let htmlCode = '';
+                let index = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    const embedUrl = `https://www.youtube.com/embed/${item.id}?enablejsapi=1&autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${item.id}&modestbranding=1`;
+
+                    htmlCode += `
+                    <div class="video-item ${item.cls}" onclick="openModal('${item.id}')">
+                        <div class="hover-overlay"></div>
+                        <div class="iframe-wrapper">
+                            <img class="thumb-img" src="https://img.youtube.com/vi/${item.id}/maxresdefault.jpg" alt="Video Thumb">
+                            <iframe id="grid-vid-${index}" 
+                                src="${embedUrl}" 
+                                frameborder="0" 
+                                allow="autoplay; encrypted-media" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>`;
+                    index++;
+                });
+
+                if(htmlCode === '') {
+                    galleryContainer.innerHTML = '<p style="text-align:center; color:white;">No videos uploaded yet.</p>';
+                } else {
+                    galleryContainer.innerHTML = htmlCode;
+                }
+
+            } catch (error) {
+                console.error("Error loading videos:", error);
+                galleryContainer.innerHTML = '<p style="color:red;">Error loading content.</p>';
+            }
+        };
+
+        // Initialize when page loads
+        window.onload = () => {
+             // Try to load videos
+            loadGalleryFromDB();
+
+            // Intro Logic (Safe check)
+            const introV = document.getElementById('introVideo');
+            if(introV) {
+                introV.onended = function() { enterSite(); };
+            }
+        };
+    </script>
+
+    <!-- GENERAL SITE SCRIPT (Nav, Modal, Intro) -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        // Intro
+        function enterSite() {
+            const overlay = document.getElementById('intro-overlay');
+            const vid = document.getElementById('introVideo');
+            if(overlay) {
+                overlay.classList.add('hidden');
+                setTimeout(() => vid.pause(), 1000);
+            }
         }
 
-        // --- 5. MODAL PLAYER (YouTube) ---
+        // Nav
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(sec => sec.classList.remove('active-section'));
+            document.getElementById(sectionId).classList.add('active-section');
+            document.querySelectorAll('.menu a').forEach(link => link.classList.remove('active'));
+            if(event && event.target) event.target.classList.add('active');
+        }
+
+        // Modal Player
         const modal = document.getElementById('video-modal');
         let player;
 
-        function onYouTubeIframeAPIReady() { /* API Ready */ }
+        function onYouTubeIframeAPIReady() { /* Ready */ }
 
-        function openModal(videoId) {
+        window.openModal = function(videoId) {
             modal.classList.add('active');
             if (player) { player.destroy(); }
 
@@ -440,7 +454,7 @@
 
         function onPlayerReady(event) { event.target.playVideo(); }
 
-        function closeModal() {
+        window.closeModal = function() {
             modal.classList.remove('active');
             if (player) {
                 player.stopVideo();
@@ -448,11 +462,6 @@
                 player = null;
             }
         }
-
-        window.onload = generateGallery;
-
     </script>
 </body>
 </html>
-
-
