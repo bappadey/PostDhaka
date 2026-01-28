@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Dhaka | Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #121A2D; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 50px; }
+        .container { width: 600px; background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; border: 1px solid #333; }
+        h2 { text-align: center; color: #EA1C5C; margin-bottom: 20px; }
+        
+        /* Login Form */
+        #login-form { display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Upload Form */
+        #upload-panel { display: none; flex-direction: column; gap: 15px; }
+        
+        input, select, button { padding: 12px; border-radius: 5px; border: none; font-size: 16px; }
+        input { background: #222; color: white; border: 1px solid #444; }
+        button { background: #0872B9; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #EA1C5C; }
+        
+        .video-list { margin-top: 30px; border-top: 1px solid #444; padding-top: 20px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .delete-btn { background: #ff4444; padding: 5px 10px; font-size: 12px; }
+
+        /* Password Change Section */
+        .password-section { margin-top: 40px; border-top: 2px dashed #444; padding-top: 20px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 5px;}
+        .password-section h3 { color: #EA1C5C; margin-top: 0; }
+        .pass-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>ADMIN DASHBOARD</h2>
+
+        <!-- Login Section -->
+        <div id="login-form">
+            <input type="email" id="email" placeholder="Admin Email">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="upload-panel">
+            <h3>Add New Video</h3>
+            <input type="text" id="ytLink" placeholder="Paste YouTube Full Link (e.g. https://www.youtube.com/watch?v=...)">
+            
+            <select id="gridSize">
+                <option value="small">Small (1x1)</option>
+                <option value="medium">Medium (2x2)</option>
+                <option value="wide">Wide (3x1)</option>
+                <option value="large">Large (3x2)</option>
+                <option value="tall">Tall (1x3)</option>
+                <option value="sq">Vertical Square (1x2)</option>
+            </select>
+
+            <button onclick="addVideo()">Upload Video</button>
+
+            <div class="video-list" id="videoListContainer">
+                <!-- Video List will appear here -->
+            </div>
+
+            <!-- Change Password Section -->
+            <div class="password-section">
+                <h3>Change Password</h3>
+                <div class="pass-inputs">
+                    <input type="password" id="newPass" placeholder="New Password (min 6 chars)" style="width: 100%;">
+                </div>
+                <button onclick="changeAdminPassword()" style="background: #555;">Update Password</button>
+            </div>
+            
+            <button onclick="logout()" style="background:#333; margin-top:20px; width: 100%;">Logout</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ======================================================
+        // YOUR FIREBASE CONFIG
+        // ======================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzQ81jG6k6ieD5HShAgubU3fX0eV6x7j8",
+            authDomain: "postdhaka-links.firebaseapp.com",
+            projectId: "postdhaka-links",
+            storageBucket: "postdhaka-links.firebasestorage.app",
+            messagingSenderId: "21578530372",
+            appId: "1:21578530372:web:ce243a7141d402fb924611",
+            measurementId: "G-EZVZ5DSX46"
+        };
+        // ======================================================
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const colRef = collection(db, "videos");
+
+        // --- AUTHENTICATION ---
+        window.login = () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, email, pass)
+                .catch(err => alert("Error: " + err.message));
+        };
+
+        window.logout = () => signOut(auth);
+
+        // --- PASSWORD CHANGE ---
+        window.changeAdminPassword = () => {
+            const user = auth.currentUser;
+            const newPass = document.getElementById('newPass').value;
+
+            if (newPass.length < 6) {
+                alert("Password must be at least 6 characters long.");
+                return;
+            }
+
+            if (user) {
+                updatePassword(user, newPass).then(() => {
+                    alert("Password updated successfully!");
+                    document.getElementById('newPass').value = "";
+                }).catch((error) => {
+                    alert("Error updating password: " + error.message);
+                    if(error.code === 'auth/requires-recent-login'){
+                        alert("Please logout and login again to change password.");
+                    }
+                });
+            } else {
+                alert("No user logged in.");
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('upload-panel').style.display = 'flex';
+                loadVideos();
+            } else {
+                document.getElementById('login-form').style.display = 'flex';
+                document.getElementById('upload-panel').style.display = 'none';
+            }
+        });
+
+        // --- EXTRACT ID FROM URL ---
+        function getYouTubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // --- ADD VIDEO ---
+        window.addVideo = async () => {
+            const url = document.getElementById('ytLink').value;
+            const size = document.getElementById('gridSize').value;
+            const videoId = getYouTubeID(url);
+
+            if (!videoId) { alert("Invalid YouTube Link!"); return; }
+
+            try {
+                await addDoc(colRef, {
+                    id: videoId,
+                    cls: size,
+                    timestamp: Date.now()
+                });
+                document.getElementById('ytLink').value = "";
+                alert("Video Added!");
+            } catch (e) {
+                alert("Error adding video: " + e.message);
+            }
+        };
+
+        // --- DELETE VIDEO ---
+        window.deleteVideo = async (docId) => {
+            if(confirm("Delete this video?")) {
+                await deleteDoc(doc(db, "videos", docId));
+            }
+        }
+
+        // --- LOAD VIDEOS ---
+        function loadVideos() {
+            const q = query(colRef, orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const list = document.getElementById('videoListContainer');
+                list.innerHTML = "<h4>Current Videos:</h4>";
+                snapshot.docs.forEach(doc => {
+                    const vid = doc.data();
+                    list.innerHTML += `
+                        <div class="list-item">
+                            <div>
+                                <strong>${vid.cls.toUpperCase()}</strong> - ID: ${vid.id}
+                            </div>
+                            <button class="delete-btn" onclick="deleteVideo('${doc.id}')">X</button>
+                        </div>
+                    `;
+                });
+            });
+        }
+    </script>
+</body>
+</html>
