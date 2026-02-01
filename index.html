@@ -361,7 +361,9 @@
             const galleryContainer = document.getElementById('gallery-container');
             
             try {
-                const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+                // CHANGED: Now sorting by 'orderIndex' (Ascending) for Admin Drag & Drop support
+                const q = query(collection(db, "videos"), orderBy("orderIndex", "asc"));
+                
                 const querySnapshot = await getDocs(q);
                 
                 let htmlCode = '';
@@ -395,16 +397,33 @@
 
             } catch (error) {
                 console.error("Error loading videos:", error);
-                galleryContainer.innerHTML = '<p style="color:red;">Error loading content.</p>';
+                // Fallback for empty list or error
+                galleryContainer.innerHTML = '<p style="text-align:center; color:gray;">Loading...</p>';
+                // If index is missing, try default fetch
+                const q2 = query(collection(db, "videos"));
+                getDocs(q2).then((snap) => {
+                     let htmlCode = '';
+                     snap.forEach((doc) => {
+                        const item = doc.data();
+                        const embedUrl = `https://www.youtube.com/embed/${item.id}?enablejsapi=1&autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${item.id}&modestbranding=1`;
+                        htmlCode += `<div class="video-item ${item.cls}" onclick="openModal('${item.id}')">
+                            <div class="hover-overlay"></div>
+                            <div class="iframe-wrapper">
+                                <img class="thumb-img" src="https://img.youtube.com/vi/${item.id}/maxresdefault.jpg" alt="Video Thumb">
+                                <iframe src="${embedUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                            </div>
+                        </div>`;
+                     });
+                     if(htmlCode) galleryContainer.innerHTML = htmlCode;
+                });
             }
         };
 
         // Initialize when page loads
         window.onload = () => {
-             // Try to load videos
             loadGalleryFromDB();
 
-            // Intro Logic (Safe check)
+            // Intro Logic
             const introV = document.getElementById('introVideo');
             if(introV) {
                 introV.onended = function() { enterSite(); };
@@ -412,7 +431,7 @@
         };
     </script>
 
-    <!-- GENERAL SITE SCRIPT (Nav, Modal, Intro) -->
+    <!-- GENERAL SITE SCRIPT -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // Intro
