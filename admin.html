@@ -3,132 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Dhaka | Admin Panel</title>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- SortableJS for Drag and Drop -->
+    <title>Admin | Post Dhaka</title>
+    <link rel="icon" href="Assets/Post Dhaka icon.png" type="image/png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <style>
-        body { background-color: #121A2D; color: white; font-family: sans-serif; padding: 20px; margin: 0; }
+        :root { --bg: #0f172a; --panel: #1e293b; --primary: #0872B9; --accent: #EA1C5C; --text: #f1f5f9; --border: #334155; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
         
-        /* Layout */
-        .main-wrapper { display: flex; gap: 20px; height: 95vh; }
+        /* LOGIN */
+        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: var(--panel); padding: 40px; border-radius: 12px; width: 350px; text-align: center; border: 1px solid var(--border); }
+        input, textarea { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; outline: none; margin-bottom: 10px; }
+        input:focus, textarea:focus { border-color: var(--primary); }
+        .btn-primary { background: var(--primary); color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        /* Left Side: Controls */
-        .controls-container { width: 40%; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; border: 1px solid #333; overflow-y: auto; }
+        /* DASHBOARD */
+        .dashboard { display: none; height: 100vh; display: flex; }
         
-        /* Right Side: Live Preview */
-        .preview-container { width: 60%; background: #000; border-radius: 10px; border: 1px solid #333; display: flex; flex-direction: column; }
-        .preview-header { padding: 10px; background: #222; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
-        iframe { width: 100%; height: 100%; border: none; background: #121A2D; }
+        /* SIDEBAR */
+        .sidebar { width: 250px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; background: rgba(0,0,0,0.2); font-weight: bold; color: var(--accent); letter-spacing: 1px; }
+        
+        .nav-btn { background: transparent; color: #94a3b8; padding: 15px 20px; text-align: left; border: none; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-btn.active { background: var(--primary); color: white; }
+        
+        /* CONTENT AREA */
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; display: flex; gap: 20px; }
+        .editor-section { flex: 1; max-width: 600px; display: none; flex-direction: column; }
+        .editor-section.active { display: flex; }
+        
+        /* CARDS & FORMS */
+        .card { background: var(--panel); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+        h3 { color: var(--primary); margin-top: 0; }
+        label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
 
-        h2, h3 { color: #EA1C5C; margin-top: 0; }
-        
-        /* Form Elements */
-        input, select, button { padding: 10px; border-radius: 5px; border: none; font-size: 14px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
-        input, select { background: #222; color: white; border: 1px solid #444; }
-        
-        .btn-group { display: flex; gap: 5px; }
-        .btn-primary { background: #0872B9; color: white; cursor: pointer; font-weight: bold; }
-        .btn-primary:hover { background: #065a94; }
-        .btn-cancel { background: #555; color: white; cursor: pointer; display: none; }
-        .btn-refresh { width: auto; background: #222; color: #fff; border: 1px solid #555; cursor: pointer; }
+        /* VIDEO LIST STYLES (From previous code) */
+        .video-card { background: #0f172a; border: 1px solid var(--border); padding: 10px; display: flex; gap: 10px; align-items: center; margin-bottom: 8px; cursor: grab; }
+        .thumb { width: 60px; height: 34px; object-fit: cover; }
+        .drag-handle { cursor: grab; color: #666; }
 
-        /* Draggable List */
-        .video-list { margin-top: 20px; }
-        .list-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #000; padding: 10px; margin-bottom: 8px; border-radius: 4px; 
-            border-left: 4px solid #EA1C5C; cursor: grab; transition: background 0.2s;
-        }
-        .list-item:active { cursor: grabbing; background: #222; }
-        .list-item.sortable-ghost { opacity: 0.4; background: #EA1C5C; }
+        /* PREVIEW */
+        .preview-pane { flex: 1; background: black; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); display: flex; flex-direction: column; }
+        iframe { width: 100%; height: 100%; border: none; flex: 1; }
+        .refresh-btn { background: #334155; color: white; border: none; padding: 5px 10px; cursor: pointer; width: 100%; }
         
-        .item-info { flex-grow: 1; margin-left: 10px; }
-        .item-info small { color: #888; font-size: 11px; }
-        .drag-handle { color: #555; cursor: grab; padding: 5px; }
-        
-        .actions { display: flex; gap: 5px; }
-        .btn-sm { padding: 5px 10px; font-size: 12px; width: auto; cursor: pointer; }
-        .edit-btn { background: #f39c12; color: white; }
-        .delete-btn { background: #c0392b; color: white; }
-
-        /* Password Section */
-        .password-section { margin-top: 20px; border-top: 1px dashed #444; padding-top: 15px; }
+        /* SERVICES LIST */
+        .service-item { background: #0f172a; padding: 15px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
-    <div class="main-wrapper">
-        <!-- LEFT: Admin Controls -->
-        <div class="controls-container">
-            <h2 style="text-align:center;">ADMIN PANEL</h2>
-
-            <!-- Login -->
-            <div id="login-form">
-                <input type="email" id="email" placeholder="Email">
-                <input type="password" id="password" placeholder="Password">
-                <button class="btn-primary" onclick="login()">Login</button>
-            </div>
-
-            <!-- Dashboard -->
-            <div id="upload-panel" style="display:none;">
-                <h3 id="formTitle">Add Video</h3>
-                <input type="hidden" id="editDocId">
-                <input type="text" id="ytLink" placeholder="YouTube Link">
-                
-                <select id="gridSize">
-                    <option value="small">Small (1x1)</option>
-                    <option value="medium">Medium (2x2)</option>
-                    <option value="wide">Wide (3x1)</option>
-                    <option value="large">Large (3x2)</option>
-                    <option value="tall">Tall (1x3)</option>
-                    <option value="sq">Vertical Square (1x2)</option>
-                </select>
-
-                <div class="btn-group">
-                    <button id="submitBtn" class="btn-primary" onclick="saveVideo()">Upload</button>
-                    <button id="cancelBtn" class="btn-cancel" onclick="cancelEdit()">Cancel</button>
-                </div>
-                
-                <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
-                    <h3>Sort Videos</h3>
-                    <small style="color:#0872B9;">(Drag to Reorder)</small>
-                </div>
-
-                <div class="video-list" id="videoListContainer">
-                    <!-- List loads here -->
-                </div>
-
-                <div class="password-section">
-                    <h3>Security</h3>
-                    <input type="password" id="newPass" placeholder="New Password">
-                    <button onclick="changeAdminPassword()" style="background:#444; color:white;">Change Password</button>
-                    <button onclick="logout()" style="background:#c0392b; color:white; margin-top:5px;">Logout</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT: Live Preview -->
-        <div class="preview-container">
-            <div class="preview-header">
-                <span>Live Website Preview</span>
-                <button class="btn-refresh" onclick="refreshPreview()"><i class="fas fa-sync"></i> Refresh</button>
-            </div>
-            <iframe id="sitePreview" src="index.html"></iframe>
+    <!-- LOGIN -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>Admin Panel</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn-primary" onclick="login()">Login</button>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+        
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">POST DHAKA</div>
+            
+            <button class="nav-btn active" onclick="switchTab('portfolio')"><i class="fas fa-video"></i> Video Portfolio</button>
+            <button class="nav-btn" onclick="switchTab('services')"><i class="fas fa-layer-group"></i> Services</button>
+            <button class="nav-btn" onclick="switchTab('about')"><i class="fas fa-info-circle"></i> About Us</button>
+            <button class="nav-btn" onclick="switchTab('contact')"><i class="fas fa-address-book"></i> Contact Info</button>
+            
+            <div style="margin-top: auto; padding: 20px;">
+                <button onclick="logout()" style="background: #ef4444; color: white; width: 100%; padding: 8px; border:none; border-radius:4px; cursor:pointer;">Logout</button>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="content-area">
+            
+            <!-- 1. PORTFOLIO TAB -->
+            <div id="tab-portfolio" class="editor-section active">
+                <h3>Manage Videos</h3>
+                <div class="card">
+                    <label>Add New Video (YouTube Link)</label>
+                    <input type="text" id="ytLink" placeholder="https://youtube.com/watch?v=...">
+                    <div style="display:flex; gap:10px;">
+                        <select id="gridSize" style="background:#0f172a; color:white; padding:10px; border:1px solid #334155; border-radius:6px; flex:1;">
+                            <option value="small">Small (1x1)</option>
+                            <option value="medium">Medium (2x2)</option>
+                            <option value="wide">Wide (3x1)</option>
+                            <option value="large">Large (3x2)</option>
+                            <option value="tall">Tall (1x3)</option>
+                            <option value="sq">Vertical Square (1x2)</option>
+                        </select>
+                        <button class="btn-primary" style="width:auto;" onclick="saveVideo()">Add</button>
+                    </div>
+                </div>
+                <div id="videoList">Loading...</div>
+            </div>
+
+            <!-- 2. SERVICES TAB -->
+            <div id="tab-services" class="editor-section">
+                <h3>Manage Services</h3>
+                <div id="servicesList">Loading services...</div>
+                <!-- Note: Ideally we add "Add Service" here, but to keep layout simple we edit existing 3 -->
+            </div>
+
+            <!-- 3. ABOUT TAB -->
+            <div id="tab-about" class="editor-section">
+                <h3>Edit About Section</h3>
+                <div class="card">
+                    <label>Title</label>
+                    <input type="text" id="aboutTitle">
+                    <label>Description (HTML allowed)</label>
+                    <textarea id="aboutDesc" rows="10"></textarea>
+                    <button class="btn-primary" onclick="saveAbout()">Save Changes</button>
+                </div>
+            </div>
+
+            <!-- 4. CONTACT TAB -->
+            <div id="tab-contact" class="editor-section">
+                <h3>Contact Information</h3>
+                <div class="card">
+                    <label>Phone Number</label>
+                    <input type="text" id="contactPhone">
+                    <label>Email Address</label>
+                    <input type="text" id="contactEmail">
+                    <label>Address Line 1</label>
+                    <input type="text" id="contactAddr1">
+                    <label>Address Line 2</label>
+                    <input type="text" id="contactAddr2">
+                    <label>Facebook Link</label>
+                    <input type="text" id="contactFb">
+                    <button class="btn-primary" onclick="saveContact()">Update Contact</button>
+                </div>
+            </div>
+
+            <!-- PREVIEW PANE -->
+            <div class="preview-pane">
+                <button class="refresh-btn" onclick="document.getElementById('sitePreview').src='index.html'"><i class="fas fa-sync"></i> Refresh Preview</button>
+                <iframe id="sitePreview" src="index.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ======================================================
-        // আপনার FIREBASE CONFIG এখানে বসান
-        // ======================================================
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBzQ81jG6k6ieD5HShAgubU3fX0eV6x7j8",
             authDomain: "postdhaka-links.firebaseapp.com",
@@ -138,159 +169,192 @@
             appId: "1:21578530372:web:ce243a7141d402fb924611",
             measurementId: "G-EZVZ5DSX46"
         };
-        // ======================================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const colRef = collection(db, "videos");
+
+        // --- TABS LOGIC ---
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.editor-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        };
 
         // --- AUTH ---
         window.login = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
+            .catch(e => alert(e.message));
         };
         window.logout = () => signOut(auth);
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('login-form').style.display = 'none';
-                document.getElementById('upload-panel').style.display = 'flex';
-                loadVideos();
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                document.getElementById('login-screen').style.display='none';
+                document.getElementById('dashboard').style.display='flex';
+                loadAllData();
             } else {
-                document.getElementById('login-form').style.display = 'flex';
-                document.getElementById('upload-panel').style.display = 'none';
+                document.getElementById('login-screen').style.display='flex';
+                document.getElementById('dashboard').style.display='none';
             }
         });
 
-        // --- HELPER ---
+        function loadAllData() {
+            loadVideos();
+            loadServices();
+            loadAbout();
+            loadContact();
+        }
+
+        // --- 1. VIDEO LOGIC ---
         function getYouTubeID(url) {
             const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        // --- SAVE VIDEO ---
         window.saveVideo = async () => {
             const url = document.getElementById('ytLink').value;
             const size = document.getElementById('gridSize').value;
-            const editId = document.getElementById('editDocId').value;
             const vidId = getYouTubeID(url);
-
-            if (!vidId) { alert("Invalid URL"); return; }
-
-            try {
-                if (editId) {
-                    await updateDoc(doc(db, "videos", editId), { id: vidId, cls: size });
-                    cancelEdit();
-                } else {
-                    // Add new video at the end (using Date.now as temp order)
-                    await addDoc(colRef, { id: vidId, cls: size, orderIndex: Date.now() });
-                    document.getElementById('ytLink').value = "";
-                }
-                refreshPreview(); // Auto refresh preview
-            } catch (e) { alert(e.message); }
-        };
-
-        // --- EDIT/DELETE ---
-        window.startEdit = (did, yid, sz) => {
-            document.getElementById('editDocId').value = did;
-            document.getElementById('ytLink').value = `https://youtu.be/${yid}`;
-            document.getElementById('gridSize').value = sz;
-            document.getElementById('formTitle').innerText = "Edit Video";
-            document.getElementById('submitBtn').innerText = "Update";
-            document.getElementById('submitBtn').style.background = "#f39c12";
-            document.getElementById('cancelBtn').style.display = "block";
-        };
-
-        window.cancelEdit = () => {
-            document.getElementById('editDocId').value = "";
+            if(!vidId) return alert("Invalid URL");
+            
+            await addDoc(collection(db, "videos"), { id: vidId, cls: size, orderIndex: Date.now() });
             document.getElementById('ytLink').value = "";
-            document.getElementById('gridSize').value = "small";
-            document.getElementById('formTitle').innerText = "Add Video";
-            document.getElementById('submitBtn').innerText = "Upload";
-            document.getElementById('submitBtn').style.background = "#0872B9";
-            document.getElementById('cancelBtn').style.display = "none";
+            refreshIframe();
         };
 
         window.deleteVideo = async (id) => {
-            if(confirm("Delete?")) {
-                await deleteDoc(doc(db, "videos", id));
-                refreshPreview();
-            }
+            if(confirm("Delete?")) await deleteDoc(doc(db, "videos", id));
+            refreshIframe();
         };
 
-        // --- LOAD & SORTABLE LIST ---
         function loadVideos() {
-            // Sort by 'orderIndex' to maintain user defined order
-            const q = query(colRef, orderBy("orderIndex", "asc"));
-            
-            onSnapshot(q, (snapshot) => {
-                const list = document.getElementById('videoListContainer');
+            onSnapshot(query(collection(db, "videos"), orderBy("orderIndex", "asc")), snap => {
+                const list = document.getElementById('videoList');
                 list.innerHTML = "";
-                
-                snapshot.docs.forEach(doc => {
-                    const d = doc.data();
-                    const li = document.createElement('div');
-                    li.className = "list-item";
-                    li.setAttribute('data-id', doc.id); // Store Firestore Doc ID
-                    li.innerHTML = `
-                        <i class="fas fa-grip-lines drag-handle"></i>
-                        <div class="item-info">
-                            <strong>${d.cls.toUpperCase()}</strong><br>
-                            <small>${d.id}</small>
-                        </div>
-                        <div class="actions">
-                            <button class="btn-sm edit-btn" onclick="startEdit('${doc.id}','${d.id}','${d.cls}')"><i class="fas fa-edit"></i></button>
-                            <button class="btn-sm delete-btn" onclick="deleteVideo('${doc.id}')"><i class="fas fa-trash"></i></button>
-                        </div>
-                    `;
-                    list.appendChild(li);
+                snap.forEach(d => {
+                    const data = d.data();
+                    list.innerHTML += `
+                    <div class="video-card" data-id="${d.id}">
+                        <div class="drag-handle"><i class="fas fa-bars"></i></div>
+                        <img class="thumb" src="https://img.youtube.com/vi/${data.id}/default.jpg">
+                        <div style="flex:1"><b>${data.cls}</b><br><small>${data.id}</small></div>
+                        <button onclick="deleteVideo('${d.id}')" style="background:#ef4444; color:white; border:none; padding:5px; border-radius:4px;"><i class="fas fa-trash"></i></button>
+                    </div>`;
                 });
-
-                // Initialize Sortable
-                new Sortable(list, {
-                    animation: 150,
-                    handle: '.drag-handle', // Drag using icon only
-                    ghostClass: 'sortable-ghost',
-                    onEnd: function (evt) {
-                        updateOrderInDB(); // Save new order to Firebase
-                    }
-                });
+                new Sortable(list, { handle: '.drag-handle', onEnd: updateVideoOrder });
             });
         }
 
-        // --- UPDATE ORDER IN FIREBASE ---
-        async function updateOrderInDB() {
-            const items = document.querySelectorAll('.list-item');
-            const batch = writeBatch(db); // Use batch for multiple updates
-
-            items.forEach((item, index) => {
-                const docId = item.getAttribute('data-id');
-                const docRef = doc(db, "videos", docId);
-                // Update 'orderIndex' based on new position
-                batch.update(docRef, { orderIndex: index }); 
+        async function updateVideoOrder() {
+            const batch = writeBatch(db);
+            document.querySelectorAll('.video-card').forEach((el, idx) => {
+                batch.update(doc(db, "videos", el.getAttribute('data-id')), { orderIndex: idx });
             });
-
             await batch.commit();
-            console.log("Order updated!");
-            refreshPreview();
+            refreshIframe();
         }
 
-        // --- LIVE PREVIEW REFRESH ---
-        window.refreshPreview = () => {
-            const iframe = document.getElementById('sitePreview');
-            iframe.src = iframe.src; // Reloads iframe
-        };
-        
-        // Pass changePassword function (same as before)
-        window.changeAdminPassword = () => {
-             const user = auth.currentUser;
-             const p = document.getElementById('newPass').value;
-             if(p.length<6) {alert("Min 6 chars"); return;}
-             if(user) updatePassword(user, p).then(()=>alert("Updated!")).catch(e=>alert(e.message));
-        };
+        // --- 2. SERVICES LOGIC ---
+        // We will store services in a collection 'content_services'
+        function loadServices() {
+            onSnapshot(query(collection(db, "content_services"), orderBy("order", "asc")), snap => {
+                const div = document.getElementById('servicesList');
+                div.innerHTML = "";
+                if(snap.empty) {
+                    // Create Default Services if not exist
+                    createDefaultServices();
+                }
+                snap.forEach(d => {
+                    const s = d.data();
+                    div.innerHTML += `
+                    <div class="service-item card">
+                        <label>Title</label>
+                        <input type="text" id="svc-title-${d.id}" value="${s.title}">
+                        <label>Description</label>
+                        <textarea id="svc-desc-${d.id}" rows="3">${s.description}</textarea>
+                        <label>Media Type (video/image)</label>
+                        <select id="svc-type-${d.id}" style="background:#222; color:white; width:100%; margin-bottom:10px;">
+                            <option value="video" ${s.type==='video'?'selected':''}>Video (Local Path or URL)</option>
+                            <option value="image" ${s.type==='image'?'selected':''}>Image</option>
+                        </select>
+                        <label>Media Source (e.g. Assets/Service/Edit.jpeg)</label>
+                        <input type="text" id="svc-src-${d.id}" value="${s.src}">
+                        <button class="btn-primary" onclick="updateService('${d.id}')">Update Service</button>
+                    </div>`;
+                });
+            });
+        }
 
+        // Helper to create defaults
+        async function createDefaultServices() {
+            const defaults = [
+                {title: "Creative Editing", description: "Narratives that captivate...", type: "video", src: "Assets/Service/Edit.jpeg", order: 1},
+                {title: "Color Grading", description: "Enhancing visual mood...", type: "video", src: "Assets/Service/Color.webp", order: 2},
+                {title: "Online & Finishing", description: "The final touch...", type: "video", src: "Assets/Service/Online.jpeg", order: 3}
+            ];
+            defaults.forEach(async (s) => await addDoc(collection(db, "content_services"), s));
+        }
+
+        window.updateService = async (id) => {
+            await updateDoc(doc(db, "content_services", id), {
+                title: document.getElementById(`svc-title-${id}`).value,
+                description: document.getElementById(`svc-desc-${id}`).value,
+                type: document.getElementById(`svc-type-${id}`).value,
+                src: document.getElementById(`svc-src-${id}`).value
+            });
+            alert("Service Updated!");
+            refreshIframe();
+        }
+
+        // --- 3. ABOUT LOGIC ---
+        // Stored in doc 'site_content/about'
+        async function loadAbout() {
+            const snap = await getDoc(doc(db, "site_content", "about"));
+            if(snap.exists()) {
+                document.getElementById('aboutTitle').value = snap.data().title;
+                document.getElementById('aboutDesc').value = snap.data().description;
+            }
+        }
+        window.saveAbout = async () => {
+            await setDoc(doc(db, "site_content", "about"), {
+                title: document.getElementById('aboutTitle').value,
+                description: document.getElementById('aboutDesc').value
+            });
+            alert("About Section Saved!");
+            refreshIframe();
+        }
+
+        // --- 4. CONTACT LOGIC ---
+        // Stored in doc 'site_content/contact'
+        async function loadContact() {
+            const snap = await getDoc(doc(db, "site_content", "contact"));
+            if(snap.exists()) {
+                const d = snap.data();
+                document.getElementById('contactPhone').value = d.phone;
+                document.getElementById('contactEmail').value = d.email;
+                document.getElementById('contactAddr1').value = d.addr1;
+                document.getElementById('contactAddr2').value = d.addr2;
+                document.getElementById('contactFb').value = d.fb;
+            }
+        }
+        window.saveContact = async () => {
+            await setDoc(doc(db, "site_content", "contact"), {
+                phone: document.getElementById('contactPhone').value,
+                email: document.getElementById('contactEmail').value,
+                addr1: document.getElementById('contactAddr1').value,
+                addr2: document.getElementById('contactAddr2').value,
+                fb: document.getElementById('contactFb').value
+            });
+            alert("Contact Saved!");
+            refreshIframe();
+        }
+
+        function refreshIframe() {
+            document.getElementById('sitePreview').src = "index.html";
+        }
     </script>
 </body>
 </html>
