@@ -3,115 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Post Dhaka</title>
+    <title>Admin Login | Post Dhaka</title>
     <link rel="icon" href="Assets/Post Dhaka icon.png" type="image/png">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SortableJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <style>
-        /* CSS SAME AS BEFORE - KEEPING IT CLEAN */
         :root { --bg: #0f172a; --panel: #1e293b; --primary: #0872B9; --accent: #EA1C5C; --text: #f1f5f9; --border: #334155; }
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
-        
+
+        /* LOGIN SCREEN STYLES */
         #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .login-box { background: var(--panel); padding: 40px; border-radius: 12px; width: 350px; text-align: center; border: 1px solid var(--border); }
-        input, textarea { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; outline: none; margin-bottom: 10px; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .login-box { 
+            background: var(--panel); padding: 40px; border-radius: 12px; width: 350px; 
+            text-align: center; border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .login-box h2 { color: var(--primary); margin-bottom: 20px; }
         
+        .input-group { position: relative; margin-bottom: 15px; }
+        input, textarea { 
+            width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); 
+            color: white; border-radius: 6px; box-sizing: border-box; outline: none; 
+        }
+        input:focus { border-color: var(--primary); }
+
+        /* Show Password Icon */
+        .toggle-pass {
+            position: absolute; right: 15px; top: 12px; cursor: pointer; color: #64748b;
+        }
+        .toggle-pass:hover { color: var(--primary); }
+
+        .btn-primary { 
+            background: var(--primary); color: white; width: 100%; padding: 12px; 
+            border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s;
+        }
+        .btn-primary:hover { background: #065a94; }
+
+        .error-msg { color: #ef4444; font-size: 13px; margin-top: 10px; display: none; }
+
+        /* DASHBOARD & OTHER STYLES (Keep same as before) */
         .dashboard { display: none; height: 100vh; display: flex; }
         .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .content-area { flex: 1; padding: 30px; overflow-y: auto; display: flex; gap: 20px; }
         .card { background: var(--panel); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
         
-        /* VIDEO LIST */
+        /* Nav Buttons */
+        .nav-btn { background: transparent; color: #94a3b8; padding: 15px 20px; text-align: left; border: none; cursor: pointer; width: 100%; display:block; font-size: 15px; border-left: 3px solid transparent; }
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-btn.active { background: rgba(8, 114, 185, 0.1); color: var(--primary); border-left: 3px solid var(--primary); }
+
+        /* List & Preview */
         .video-card { background: #0f172a; border: 1px solid var(--border); padding: 10px; display: flex; gap: 10px; align-items: center; margin-bottom: 8px; cursor: grab; }
-        .thumb { width: 60px; height: 34px; object-fit: cover; }
-        
-        .preview-pane { flex: 1; background: black; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+        .thumb { width: 80px; height: 45px; object-fit: cover; border-radius: 4px; }
+        .preview-pane { flex: 1; background: black; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border); }
         iframe { width: 100%; height: 100%; border: none; flex: 1; }
-        
-        .nav-btn { background: transparent; color: #94a3b8; padding: 15px 20px; text-align: left; border: none; cursor: pointer; width: 100%; display:block; }
-        .nav-btn.active { background: var(--primary); color: white; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN -->
+    <!-- 1. UPDATED LOGIN SCREEN -->
     <div id="login-screen">
         <div class="login-box">
-            <h2>Admin Panel</h2>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password">
-            <button class="btn-primary" onclick="login()">Login</button>
+            <h2><i class="fas fa-lock"></i> Admin Panel</h2>
+            
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email Address (e.g. admin@postdhaka.com)">
+            </div>
+            
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password">
+                <i class="fas fa-eye toggle-pass" onclick="togglePassword()"></i>
+            </div>
+            
+            <button class="btn-primary" onclick="login()" id="loginBtn">Login</button>
+            <p id="loginError" class="error-msg"></p>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- 2. DASHBOARD (SAME AS BEFORE) -->
     <div class="dashboard" id="dashboard">
         <!-- SIDEBAR -->
         <div class="sidebar">
-            <div style="padding:20px; font-weight:bold; color:var(--accent);">POST DHAKA</div>
-            <button class="nav-btn active" onclick="switchTab('portfolio')">Portfolio</button>
-            <button class="nav-btn" onclick="switchTab('services')">Services</button>
-            <button class="nav-btn" onclick="switchTab('about')">About</button>
-            <button class="nav-btn" onclick="switchTab('contact')">Contact</button>
-            <button onclick="logout()" style="margin-top:auto; background:#ef4444; color:white; padding:10px; border:none; cursor:pointer;">Logout</button>
+            <div style="padding:20px; font-weight:bold; color:var(--accent); font-size: 20px; border-bottom:1px solid var(--border);">POST DHAKA</div>
+            
+            <button class="nav-btn active" onclick="switchTab('portfolio')"><i class="fas fa-play-circle"></i> Videos</button>
+            <button class="nav-btn" onclick="switchTab('services')"><i class="fas fa-concierge-bell"></i> Services</button>
+            <button class="nav-btn" onclick="switchTab('about')"><i class="fas fa-info-circle"></i> About</button>
+            <button class="nav-btn" onclick="switchTab('contact')"><i class="fas fa-address-book"></i> Contact</button>
+            
+            <div style="margin-top:auto; padding: 20px;">
+                 <button onclick="logout()" style="width:100%; background:#ef4444; color:white; padding:10px; border:none; border-radius:6px; cursor:pointer;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
         </div>
 
         <!-- CONTENT -->
         <div class="content-area">
             
             <!-- PORTFOLIO TAB -->
-            <div id="tab-portfolio" style="display:block; width:400px;">
-                <h3>Manage Videos</h3>
+            <div id="tab-portfolio" style="display:block; width:450px;">
+                <h3 style="color:var(--primary)">Add Video</h3>
                 <div class="card">
-                    <label style="color:#aaa; font-size:12px;">Add YouTube Link (Auto Sized)</label>
-                    <input type="text" id="ytLink" placeholder="Paste Link Here...">
-                    <button class="btn-primary" onclick="saveVideo()">Add Video</button>
+                    <label style="color:#aaa; font-size:12px;">YouTube Link</label>
+                    <input type="text" id="ytLink" placeholder="Paste YouTube Link Here...">
+                    <button class="btn-primary" onclick="saveVideo()">Add to Portfolio</button>
                 </div>
-                <small style="color:#aaa;">Drag to reorder</small>
-                <div id="videoList">Loading...</div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <small style="color:#aaa;">Drag items to reorder</small>
+                    <small style="color:var(--accent);" id="vidCount">0 Videos</small>
+                </div>
+                <div id="videoList">
+                    <p style="text-align:center; color:gray;">Loading...</p>
+                </div>
             </div>
 
-            <!-- SERVICES TAB (Hidden by default) -->
-            <div id="tab-services" style="display:none; width:400px;">
-                <h3>Services</h3>
+            <!-- SERVICES TAB -->
+            <div id="tab-services" style="display:none; width:450px;">
+                <h3 style="color:var(--primary)">Manage Services</h3>
                 <div id="servicesList">Loading...</div>
             </div>
 
-             <!-- ABOUT TAB (Hidden by default) -->
-             <div id="tab-about" style="display:none; width:400px;">
-                <h3>About</h3>
+             <!-- ABOUT TAB -->
+             <div id="tab-about" style="display:none; width:450px;">
+                <h3 style="color:var(--primary)">About Section</h3>
                 <div class="card">
+                    <label style="color:#aaa; font-size:12px;">Title</label>
                     <input type="text" id="aboutTitle" placeholder="Title">
-                    <textarea id="aboutDesc" rows="10" placeholder="Description"></textarea>
-                    <button class="btn-primary" onclick="saveAbout()">Save</button>
+                    <label style="color:#aaa; font-size:12px;">Description</label>
+                    <textarea id="aboutDesc" rows="12" placeholder="Description"></textarea>
+                    <button class="btn-primary" onclick="saveAbout()">Save Changes</button>
                 </div>
             </div>
 
-             <!-- CONTACT TAB (Hidden by default) -->
-             <div id="tab-contact" style="display:none; width:400px;">
-                <h3>Contact</h3>
+             <!-- CONTACT TAB -->
+             <div id="tab-contact" style="display:none; width:450px;">
+                <h3 style="color:var(--primary)">Contact Info</h3>
                 <div class="card">
                     <input type="text" id="contactPhone" placeholder="Phone">
                     <input type="text" id="contactEmail" placeholder="Email">
-                    <input type="text" id="contactAddr1" placeholder="Address 1">
-                    <input type="text" id="contactAddr2" placeholder="Address 2">
+                    <input type="text" id="contactAddr1" placeholder="Address Line 1">
+                    <input type="text" id="contactAddr2" placeholder="Address Line 2">
                     <input type="text" id="contactFb" placeholder="Facebook Link">
-                    <button class="btn-primary" onclick="saveContact()">Update</button>
+                    <button class="btn-primary" onclick="saveContact()">Update Info</button>
                 </div>
             </div>
 
             <!-- PREVIEW -->
             <div class="preview-pane">
-                <button onclick="document.getElementById('sitePreview').src='index.html'" style="background:#334155; color:white; border:none; padding:5px; cursor:pointer;">Refresh Preview</button>
+                <div style="background:var(--panel); padding:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; color:gray;">LIVE PREVIEW</span>
+                    <button onclick="document.getElementById('sitePreview').src='index.html'" style="background:#334155; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
                 <iframe id="sitePreview" src="index.html"></iframe>
             </div>
         </div>
     </div>
 
-    <!-- FIREBASE -->
+    <!-- FIREBASE & JS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -131,24 +180,80 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // UI TABS
+        // --- PASSWORD SHOW/HIDE ---
+        window.togglePassword = () => {
+            const passField = document.getElementById("password");
+            const icon = document.querySelector(".toggle-pass");
+            if (passField.type === "password") {
+                passField.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                passField.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
+        // --- LOGIN LOGIC ---
+        window.login = () => {
+            const email = document.getElementById('email').value.trim(); // TRIM removes spaces
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
+
+            if(!email || !password) {
+                errorMsg.innerText = "Please fill in email and password.";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            btn.innerText = "Checking...";
+            
+            signInWithEmailAndPassword(auth, email, password)
+            .then(() => {
+                errorMsg.style.display = "none";
+            })
+            .catch((error) => {
+                btn.innerText = "Login";
+                errorMsg.style.display = "block";
+                if(error.code === 'auth/invalid-email') {
+                    errorMsg.innerText = "Invalid Email format. Check for spaces.";
+                } else if (error.code === 'auth/user-not-found') {
+                    errorMsg.innerText = "User not found in Firebase.";
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMsg.innerText = "Incorrect Password.";
+                } else {
+                    errorMsg.innerText = "Error: " + error.message;
+                }
+            });
+        };
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, u => {
+            if(u) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'flex';
+                loadAllData();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('dashboard').style.display = 'none';
+                document.getElementById('loginBtn').innerText = "Login";
+            }
+        });
+
+        // --- TABS ---
         window.switchTab = (id) => {
             ['portfolio','services','about','contact'].forEach(t => document.getElementById('tab-'+t).style.display = 'none');
             document.getElementById('tab-'+id).style.display = 'block';
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
         };
-
-        // AUTH
-        window.login = () => signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(e=>alert(e.message));
-        window.logout = () => signOut(auth);
-        onAuthStateChanged(auth, u => {
-            document.getElementById('login-screen').style.display = u ? 'none' : 'flex';
-            document.getElementById('dashboard').style.display = u ? 'flex' : 'none';
-            if(u) loadAllData();
-        });
 
         function loadAllData() { loadVideos(); loadServices(); loadAbout(); loadContact(); }
 
-        // VIDEO LOGIC
+        // --- VIDEO LOGIC ---
         function getYouTubeID(url) {
             const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
             return (match && match[2].length === 11) ? match[2] : null;
@@ -158,8 +263,6 @@
             const url = document.getElementById('ytLink').value;
             const vidId = getYouTubeID(url);
             if(!vidId) return alert("Invalid URL");
-            
-            // Note: We save 'cls' as 'auto' because index.html will decide the size
             await addDoc(collection(db, "videos"), { id: vidId, cls: 'auto', orderIndex: Date.now() });
             document.getElementById('ytLink').value = "";
             document.getElementById('sitePreview').src='index.html';
@@ -173,15 +276,18 @@
         function loadVideos() {
             onSnapshot(query(collection(db, "videos"), orderBy("orderIndex", "asc")), snap => {
                 const list = document.getElementById('videoList');
+                document.getElementById('vidCount').innerText = snap.docs.length + " Videos";
                 list.innerHTML = "";
                 snap.forEach(d => {
                     const data = d.data();
                     list.innerHTML += `
                     <div class="video-card" data-id="${d.id}">
-                        <div class="drag-handle"><i class="fas fa-bars"></i></div>
+                        <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
                         <img class="thumb" src="https://img.youtube.com/vi/${data.id}/default.jpg">
-                        <div style="flex:1"><small>${data.id}</small></div>
-                        <button onclick="deleteVideo('${d.id}')" style="background:#ef4444; color:white; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                        <div style="flex:1; margin-left:10px;">
+                            <span style="font-weight:bold; font-size:13px;">${data.id}</span>
+                        </div>
+                        <button onclick="deleteVideo('${d.id}')" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;"><i class="fas fa-trash"></i></button>
                     </div>`;
                 });
                 new Sortable(list, { handle: '.drag-handle', onEnd: updateOrder });
@@ -197,19 +303,32 @@
             document.getElementById('sitePreview').src='index.html';
         }
 
-        // OTHER LOADERS (Services, About, Contact - Same as before)
+        // --- SERVICES ---
         function loadServices() {
             onSnapshot(query(collection(db, "content_services"), orderBy("order", "asc")), snap => {
                 const div = document.getElementById('servicesList'); div.innerHTML = "";
+                if(snap.empty) createDefaultServices();
                 snap.forEach(d => {
                     const s = d.data();
                     div.innerHTML += `<div class="card">
-                        <input value="${s.title}" id="st-${d.id}"><textarea rows="2" id="sd-${d.id}">${s.description}</textarea>
+                        <label>Title</label>
+                        <input value="${s.title}" id="st-${d.id}">
+                        <label>Description</label>
+                        <textarea rows="2" id="sd-${d.id}">${s.description}</textarea>
+                        <label>Video/Image Link</label>
                         <input value="${s.src}" id="ss-${d.id}">
-                        <button class="btn-primary" onclick="updSvc('${d.id}')">Update</button>
+                        <button class="btn-primary" onclick="updSvc('${d.id}')" style="margin-top:5px;">Update</button>
                     </div>`;
                 });
             });
+        }
+        async function createDefaultServices() {
+            const defaults = [
+                {title: "Creative Editing", description: "Narratives that captivate...", type: "video", src: "Assets/Service/Edit.jpeg", order: 1},
+                {title: "Color Grading", description: "Enhancing visual mood...", type: "video", src: "Assets/Service/Color.webp", order: 2},
+                {title: "Online & Finishing", description: "The final touch...", type: "video", src: "Assets/Service/Online.jpeg", order: 3}
+            ];
+            defaults.forEach(async (s) => await addDoc(collection(db, "content_services"), s));
         }
         window.updSvc = async(id) => {
             await updateDoc(doc(db, "content_services", id), {
@@ -220,6 +339,7 @@
             document.getElementById('sitePreview').src='index.html';
         }
 
+        // --- ABOUT ---
         async function loadAbout() {
             const s = await getDoc(doc(db, "site_content", "about"));
             if(s.exists()) {
@@ -232,263 +352,7 @@
             document.getElementById('sitePreview').src='index.html';
         }
 
-        async function loadContact() {
-            const s = await getDoc(doc(db, "site_content", "contact"));
-            if(s.exists()) {
-                const d = s.data();
-                document.getElementById('contactPhone').value = d.phone;
-                document.getElementById('contactEmail').value = d.email;
-                document.getElementById('contactAddr1').value = d.addr1;
-                document.getElementById('contactAddr2').value = d.addr2;
-                document.getElementById('contactFb').value = d.fb;
-            }
-        }
-        window.saveContact = async() => {
-            await setDoc(doc(db, "site_content", "contact"), {
-                phone: document.getElementById('contactPhone').value,
-                email: document.getElementById('contactEmail').value,
-                addr1: document.getElementById('contactAddr1').value,
-                addr2: document.getElementById('contactAddr2').value,
-                fb: document.getElementById('contactFb').value
-            });
-            document.getElementById('sitePreview').src='index.html';
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Post Dhaka</title>
-    <link rel="icon" href="Assets/Post Dhaka icon.png" type="image/png">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-
-    <style>
-        /* CSS SAME AS BEFORE - KEEPING IT CLEAN */
-        :root { --bg: #0f172a; --panel: #1e293b; --primary: #0872B9; --accent: #EA1C5C; --text: #f1f5f9; --border: #334155; }
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
-        
-        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .login-box { background: var(--panel); padding: 40px; border-radius: 12px; width: 350px; text-align: center; border: 1px solid var(--border); }
-        input, textarea { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; outline: none; margin-bottom: 10px; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
-        .dashboard { display: none; height: 100vh; display: flex; }
-        .sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .content-area { flex: 1; padding: 30px; overflow-y: auto; display: flex; gap: 20px; }
-        .card { background: var(--panel); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
-        
-        /* VIDEO LIST */
-        .video-card { background: #0f172a; border: 1px solid var(--border); padding: 10px; display: flex; gap: 10px; align-items: center; margin-bottom: 8px; cursor: grab; }
-        .thumb { width: 60px; height: 34px; object-fit: cover; }
-        
-        .preview-pane { flex: 1; background: black; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
-        iframe { width: 100%; height: 100%; border: none; flex: 1; }
-        
-        .nav-btn { background: transparent; color: #94a3b8; padding: 15px 20px; text-align: left; border: none; cursor: pointer; width: 100%; display:block; }
-        .nav-btn.active { background: var(--primary); color: white; }
-    </style>
-</head>
-<body>
-
-    <!-- LOGIN -->
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>Admin Panel</h2>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password">
-            <button class="btn-primary" onclick="login()">Login</button>
-        </div>
-    </div>
-
-    <!-- DASHBOARD -->
-    <div class="dashboard" id="dashboard">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div style="padding:20px; font-weight:bold; color:var(--accent);">POST DHAKA</div>
-            <button class="nav-btn active" onclick="switchTab('portfolio')">Portfolio</button>
-            <button class="nav-btn" onclick="switchTab('services')">Services</button>
-            <button class="nav-btn" onclick="switchTab('about')">About</button>
-            <button class="nav-btn" onclick="switchTab('contact')">Contact</button>
-            <button onclick="logout()" style="margin-top:auto; background:#ef4444; color:white; padding:10px; border:none; cursor:pointer;">Logout</button>
-        </div>
-
-        <!-- CONTENT -->
-        <div class="content-area">
-            
-            <!-- PORTFOLIO TAB -->
-            <div id="tab-portfolio" style="display:block; width:400px;">
-                <h3>Manage Videos</h3>
-                <div class="card">
-                    <label style="color:#aaa; font-size:12px;">Add YouTube Link (Auto Sized)</label>
-                    <input type="text" id="ytLink" placeholder="Paste Link Here...">
-                    <button class="btn-primary" onclick="saveVideo()">Add Video</button>
-                </div>
-                <small style="color:#aaa;">Drag to reorder</small>
-                <div id="videoList">Loading...</div>
-            </div>
-
-            <!-- SERVICES TAB (Hidden by default) -->
-            <div id="tab-services" style="display:none; width:400px;">
-                <h3>Services</h3>
-                <div id="servicesList">Loading...</div>
-            </div>
-
-             <!-- ABOUT TAB (Hidden by default) -->
-             <div id="tab-about" style="display:none; width:400px;">
-                <h3>About</h3>
-                <div class="card">
-                    <input type="text" id="aboutTitle" placeholder="Title">
-                    <textarea id="aboutDesc" rows="10" placeholder="Description"></textarea>
-                    <button class="btn-primary" onclick="saveAbout()">Save</button>
-                </div>
-            </div>
-
-             <!-- CONTACT TAB (Hidden by default) -->
-             <div id="tab-contact" style="display:none; width:400px;">
-                <h3>Contact</h3>
-                <div class="card">
-                    <input type="text" id="contactPhone" placeholder="Phone">
-                    <input type="text" id="contactEmail" placeholder="Email">
-                    <input type="text" id="contactAddr1" placeholder="Address 1">
-                    <input type="text" id="contactAddr2" placeholder="Address 2">
-                    <input type="text" id="contactFb" placeholder="Facebook Link">
-                    <button class="btn-primary" onclick="saveContact()">Update</button>
-                </div>
-            </div>
-
-            <!-- PREVIEW -->
-            <div class="preview-pane">
-                <button onclick="document.getElementById('sitePreview').src='index.html'" style="background:#334155; color:white; border:none; padding:5px; cursor:pointer;">Refresh Preview</button>
-                <iframe id="sitePreview" src="index.html"></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- FIREBASE -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBzQ81jG6k6ieD5HShAgubU3fX0eV6x7j8",
-            authDomain: "postdhaka-links.firebaseapp.com",
-            projectId: "postdhaka-links",
-            storageBucket: "postdhaka-links.firebasestorage.app",
-            messagingSenderId: "21578530372",
-            appId: "1:21578530372:web:ce243a7141d402fb924611",
-            measurementId: "G-EZVZ5DSX46"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // UI TABS
-        window.switchTab = (id) => {
-            ['portfolio','services','about','contact'].forEach(t => document.getElementById('tab-'+t).style.display = 'none');
-            document.getElementById('tab-'+id).style.display = 'block';
-        };
-
-        // AUTH
-        window.login = () => signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(e=>alert(e.message));
-        window.logout = () => signOut(auth);
-        onAuthStateChanged(auth, u => {
-            document.getElementById('login-screen').style.display = u ? 'none' : 'flex';
-            document.getElementById('dashboard').style.display = u ? 'flex' : 'none';
-            if(u) loadAllData();
-        });
-
-        function loadAllData() { loadVideos(); loadServices(); loadAbout(); loadContact(); }
-
-        // VIDEO LOGIC
-        function getYouTubeID(url) {
-            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        window.saveVideo = async () => {
-            const url = document.getElementById('ytLink').value;
-            const vidId = getYouTubeID(url);
-            if(!vidId) return alert("Invalid URL");
-            
-            // Note: We save 'cls' as 'auto' because index.html will decide the size
-            await addDoc(collection(db, "videos"), { id: vidId, cls: 'auto', orderIndex: Date.now() });
-            document.getElementById('ytLink').value = "";
-            document.getElementById('sitePreview').src='index.html';
-        };
-
-        window.deleteVideo = async (id) => {
-            if(confirm("Delete?")) await deleteDoc(doc(db, "videos", id));
-            document.getElementById('sitePreview').src='index.html';
-        };
-
-        function loadVideos() {
-            onSnapshot(query(collection(db, "videos"), orderBy("orderIndex", "asc")), snap => {
-                const list = document.getElementById('videoList');
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    const data = d.data();
-                    list.innerHTML += `
-                    <div class="video-card" data-id="${d.id}">
-                        <div class="drag-handle"><i class="fas fa-bars"></i></div>
-                        <img class="thumb" src="https://img.youtube.com/vi/${data.id}/default.jpg">
-                        <div style="flex:1"><small>${data.id}</small></div>
-                        <button onclick="deleteVideo('${d.id}')" style="background:#ef4444; color:white; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
-                    </div>`;
-                });
-                new Sortable(list, { handle: '.drag-handle', onEnd: updateOrder });
-            });
-        }
-
-        async function updateOrder() {
-            const batch = writeBatch(db);
-            document.querySelectorAll('.video-card').forEach((el, idx) => {
-                batch.update(doc(db, "videos", el.getAttribute('data-id')), { orderIndex: idx });
-            });
-            await batch.commit();
-            document.getElementById('sitePreview').src='index.html';
-        }
-
-        // OTHER LOADERS (Services, About, Contact - Same as before)
-        function loadServices() {
-            onSnapshot(query(collection(db, "content_services"), orderBy("order", "asc")), snap => {
-                const div = document.getElementById('servicesList'); div.innerHTML = "";
-                snap.forEach(d => {
-                    const s = d.data();
-                    div.innerHTML += `<div class="card">
-                        <input value="${s.title}" id="st-${d.id}"><textarea rows="2" id="sd-${d.id}">${s.description}</textarea>
-                        <input value="${s.src}" id="ss-${d.id}">
-                        <button class="btn-primary" onclick="updSvc('${d.id}')">Update</button>
-                    </div>`;
-                });
-            });
-        }
-        window.updSvc = async(id) => {
-            await updateDoc(doc(db, "content_services", id), {
-                title: document.getElementById('st-'+id).value,
-                description: document.getElementById('sd-'+id).value,
-                src: document.getElementById('ss-'+id).value
-            });
-            document.getElementById('sitePreview').src='index.html';
-        }
-
-        async function loadAbout() {
-            const s = await getDoc(doc(db, "site_content", "about"));
-            if(s.exists()) {
-                document.getElementById('aboutTitle').value = s.data().title;
-                document.getElementById('aboutDesc').value = s.data().description;
-            }
-        }
-        window.saveAbout = async() => {
-            await setDoc(doc(db, "site_content", "about"), { title: document.getElementById('aboutTitle').value, description: document.getElementById('aboutDesc').value });
-            document.getElementById('sitePreview').src='index.html';
-        }
-
+        // --- CONTACT ---
         async function loadContact() {
             const s = await getDoc(doc(db, "site_content", "contact"));
             if(s.exists()) {
