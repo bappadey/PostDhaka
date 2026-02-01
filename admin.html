@@ -41,10 +41,11 @@
         h3 { color: var(--primary); margin-top: 0; }
         label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
 
-        /* VIDEO LIST STYLES (From previous code) */
-        .video-card { background: #0f172a; border: 1px solid var(--border); padding: 10px; display: flex; gap: 10px; align-items: center; margin-bottom: 8px; cursor: grab; }
-        .thumb { width: 60px; height: 34px; object-fit: cover; }
-        .drag-handle { cursor: grab; color: #666; }
+        /* VIDEO LIST STYLES */
+        .video-card { background: #0f172a; border: 1px solid var(--border); padding: 10px; display: flex; gap: 10px; align-items: center; margin-bottom: 8px; cursor: grab; transition: 0.2s; }
+        .video-card:hover { border-color: var(--primary); }
+        .thumb { width: 60px; height: 34px; object-fit: cover; border-radius: 4px; }
+        .drag-handle { cursor: grab; color: #666; padding: 5px; }
 
         /* PREVIEW */
         .preview-pane { flex: 1; background: black; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); display: flex; flex-direction: column; }
@@ -105,14 +106,21 @@
                         <button class="btn-primary" style="width:auto;" onclick="saveVideo()">Add</button>
                     </div>
                 </div>
-                <div id="videoList">Loading...</div>
+                
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <small style="color:#94a3b8;">Drag to reorder videos</small>
+                    <small id="video-count" style="color:#EA1C5C;">Loading...</small>
+                </div>
+                
+                <div id="videoList">
+                    <p style="color:gray; text-align:center;">Fetching Data...</p>
+                </div>
             </div>
 
             <!-- 2. SERVICES TAB -->
             <div id="tab-services" class="editor-section">
                 <h3>Manage Services</h3>
                 <div id="servicesList">Loading services...</div>
-                <!-- Note: Ideally we add "Add Service" here, but to keep layout simple we edit existing 3 -->
             </div>
 
             <!-- 3. ABOUT TAB -->
@@ -157,7 +165,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, getDocs, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIG
         const firebaseConfig = {
@@ -208,7 +216,7 @@
             loadContact();
         }
 
-        // --- 1. VIDEO LOGIC ---
+        // --- 1. VIDEO LOGIC (WITH AUTO FIX) ---
         function getYouTubeID(url) {
             const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
             return (match && match[2].length === 11) ? match[2] : null;
@@ -220,6 +228,7 @@
             const vidId = getYouTubeID(url);
             if(!vidId) return alert("Invalid URL");
             
+            // Add with current timestamp as orderIndex initially
             await addDoc(collection(db, "videos"), { id: vidId, cls: size, orderIndex: Date.now() });
             document.getElementById('ytLink').value = "";
             refreshIframe();
@@ -230,20 +239,57 @@
             refreshIframe();
         };
 
-        function loadVideos() {
-            onSnapshot(query(collection(db, "videos"), orderBy("orderIndex", "asc")), snap => {
-                const list = document.getElementById('videoList');
-                list.innerHTML = "";
+        async function loadVideos() {
+            const list = document.getElementById('videoList');
+            
+            // NOTE: We are NOT using orderBy in the query here to ensure we fetch ALL docs (even old ones)
+            // Then we sort in JS and fix missing indexes.
+            onSnapshot(collection(db, "videos"), async (snap) => {
+                let videos = [];
                 snap.forEach(d => {
-                    const data = d.data();
+                    let v = d.data();
+                    v.docId = d.id;
+                    videos.push(v);
+                });
+
+                // Client-side Sort
+                videos.sort((a, b) => {
+                    let orderA = a.orderIndex !== undefined ? a.orderIndex : a.timestamp || 0;
+                    let orderB = b.orderIndex !== undefined ? b.orderIndex : b.timestamp || 0;
+                    return orderA - orderB;
+                });
+
+                // AUTO-FIX: Assign orderIndex if missing
+                let needsFix = false;
+                const batch = writeBatch(db);
+                
+                videos.forEach((v, idx) => {
+                    if (v.orderIndex === undefined) {
+                        batch.update(doc(db, "videos", v.docId), { orderIndex: idx });
+                        needsFix = true;
+                    }
+                });
+                
+                if (needsFix) {
+                    await batch.commit();
+                    console.log("Old data fixed automatically.");
+                }
+
+                // Render List
+                document.getElementById('video-count').innerText = videos.length + " Videos";
+                list.innerHTML = "";
+                
+                videos.forEach(v => {
                     list.innerHTML += `
-                    <div class="video-card" data-id="${d.id}">
+                    <div class="video-card" data-id="${v.docId}">
                         <div class="drag-handle"><i class="fas fa-bars"></i></div>
-                        <img class="thumb" src="https://img.youtube.com/vi/${data.id}/default.jpg">
-                        <div style="flex:1"><b>${data.cls}</b><br><small>${data.id}</small></div>
-                        <button onclick="deleteVideo('${d.id}')" style="background:#ef4444; color:white; border:none; padding:5px; border-radius:4px;"><i class="fas fa-trash"></i></button>
+                        <img class="thumb" src="https://img.youtube.com/vi/${v.id}/default.jpg">
+                        <div style="flex:1"><b>${v.cls.toUpperCase()}</b><br><small>${v.id}</small></div>
+                        <button onclick="deleteVideo('${v.docId}')" style="background:#ef4444; color:white; border:none; padding:5px; border-radius:4px;"><i class="fas fa-trash"></i></button>
                     </div>`;
                 });
+
+                // Init Drag & Drop
                 new Sortable(list, { handle: '.drag-handle', onEnd: updateVideoOrder });
             });
         }
@@ -258,15 +304,12 @@
         }
 
         // --- 2. SERVICES LOGIC ---
-        // We will store services in a collection 'content_services'
         function loadServices() {
             onSnapshot(query(collection(db, "content_services"), orderBy("order", "asc")), snap => {
                 const div = document.getElementById('servicesList');
                 div.innerHTML = "";
-                if(snap.empty) {
-                    // Create Default Services if not exist
-                    createDefaultServices();
-                }
+                if(snap.empty) createDefaultServices();
+                
                 snap.forEach(d => {
                     const s = d.data();
                     div.innerHTML += `
@@ -275,12 +318,12 @@
                         <input type="text" id="svc-title-${d.id}" value="${s.title}">
                         <label>Description</label>
                         <textarea id="svc-desc-${d.id}" rows="3">${s.description}</textarea>
-                        <label>Media Type (video/image)</label>
+                        <label>Media Type</label>
                         <select id="svc-type-${d.id}" style="background:#222; color:white; width:100%; margin-bottom:10px;">
-                            <option value="video" ${s.type==='video'?'selected':''}>Video (Local Path or URL)</option>
+                            <option value="video" ${s.type==='video'?'selected':''}>Video</option>
                             <option value="image" ${s.type==='image'?'selected':''}>Image</option>
                         </select>
-                        <label>Media Source (e.g. Assets/Service/Edit.jpeg)</label>
+                        <label>Source (Path or URL)</label>
                         <input type="text" id="svc-src-${d.id}" value="${s.src}">
                         <button class="btn-primary" onclick="updateService('${d.id}')">Update Service</button>
                     </div>`;
@@ -288,7 +331,6 @@
             });
         }
 
-        // Helper to create defaults
         async function createDefaultServices() {
             const defaults = [
                 {title: "Creative Editing", description: "Narratives that captivate...", type: "video", src: "Assets/Service/Edit.jpeg", order: 1},
@@ -310,7 +352,6 @@
         }
 
         // --- 3. ABOUT LOGIC ---
-        // Stored in doc 'site_content/about'
         async function loadAbout() {
             const snap = await getDoc(doc(db, "site_content", "about"));
             if(snap.exists()) {
@@ -323,12 +364,11 @@
                 title: document.getElementById('aboutTitle').value,
                 description: document.getElementById('aboutDesc').value
             });
-            alert("About Section Saved!");
+            alert("About Saved!");
             refreshIframe();
         }
 
         // --- 4. CONTACT LOGIC ---
-        // Stored in doc 'site_content/contact'
         async function loadContact() {
             const snap = await getDoc(doc(db, "site_content", "contact"));
             if(snap.exists()) {
@@ -352,9 +392,7 @@
             refreshIframe();
         }
 
-        function refreshIframe() {
-            document.getElementById('sitePreview').src = "index.html";
-        }
+        function refreshIframe() { document.getElementById('sitePreview').src = "index.html"; }
     </script>
 </body>
 </html>
